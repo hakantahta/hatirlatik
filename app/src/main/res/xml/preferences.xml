@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="Bildirim Ayarları"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="notifications_enabled"
+            android:title="Bildirimleri Etkinleştir"
+            android:summary="Görev hatırlatmaları için bildirimleri etkinleştir"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            android:defaultValue="15"
+            android:entries="@array/reminder_time_entries"
+            android:entryValues="@array/reminder_time_values"
+            android:key="default_reminder_time"
+            android:title="Varsayılan Hatırlatma Süresi"
+            android:summary="Görevler için varsayılan hatırlatma süresini seç"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Uygulama Ayarları"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="dark_mode"
+            android:title="Karanlık Tema"
+            android:summary="Karanlık temayı etkinleştir"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="clear_all_tasks"
+            android:title="Tüm Görevleri Temizle"
+            android:summary="Tüm görevleri kalıcı olarak sil"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Hakkında"
+        app:iconSpaceReserved="false">
+
+        <Preference
+            android:key="app_version"
+            android:title="Uygulama Sürümü"
+            android:summary="1.0.0"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen> 

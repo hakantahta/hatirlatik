@@ -1,3 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">hatirlatik</string>
+    <string name="app_name">Hatırlatık</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_home">Ana Sayfa</string>
+    <string name="nav_calendar">Takvim</string>
+    <string name="nav_settings">Ayarlar</string>
+
+    <!-- Task Actions -->
+    <string name="add_task">Görev Ekle</string>
+    <string name="edit_task">Görevi Düzenle</string>
+    <string name="delete_task">Görevi Sil</string>
+    <string name="task_title">Görev Başlığı</string>
+    <string name="task_description">Görev Açıklaması</string>
+    <string name="task_date">Görev Tarihi</string>
+    <string name="task_time">Görev Saati</string>
+
+    <!-- Settings -->
+    <string-array name="reminder_time_entries">
+        <item>5 dakika önce</item>
+        <item>15 dakika önce</item>
+        <item>30 dakika önce</item>
+        <item>1 saat önce</item>
+        <item>2 saat önce</item>
+        <item>1 gün önce</item>
+    </string-array>
+
+    <string-array name="reminder_time_values">
+        <item>5</item>
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>120</item>
+        <item>1440</item>
+    </string-array>
 </resources>

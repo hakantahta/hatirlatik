@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.tahtalı.hatirlatik">
+
+    <!-- İnternet izni (AdMob için gerekli) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- Bildirim izinleri -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    
+    <!-- Alarm izinleri -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    
+    <!-- Cihaz yeniden başlatıldığında alarmları yeniden ayarlamak için -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
+        android:name=".HatirlatikApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -12,15 +28,42 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Hatirlatik"
         tools:targetApi="31">
+
+        <!-- AdMob uygulama ID'si -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy"/>
+
+        <!-- Ana aktivite -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.main.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Görev aktiviteleri -->
+        <activity android:name=".ui.task.add.AddTaskActivity" />
+        <activity android:name=".ui.task.detail.TaskDetailActivity" />
+        <activity android:name=".ui.settings.SettingsActivity" />
+
+        <!-- Alarm Receiver -->
+        <receiver
+            android:name=".service.alarm.AlarmReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Notification Service -->
+        <service
+            android:name=".service.notification.NotificationService"
+            android:exported="false" />
+
     </application>
 
 </manifest>
