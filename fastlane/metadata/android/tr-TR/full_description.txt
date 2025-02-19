@@ -1,0 +1,35 @@
+Hatırlatık, günlük görevlerinizi kolayca yönetmenize ve zamanında hatırlamanıza yardımcı olan kullanıcı dostu bir görev yönetimi uygulamasıdır.
+
+🔑 Öne Çıkan Özellikler:
+
+📝 Görev Yönetimi
+• Basit ve kullanıcı dostu arayüz
+• Hızlı görev oluşturma ve düzenleme
+• Detaylı görev açıklamaları
+• Görev tamamlama takibi
+
+⏰ Akıllı Hatırlatmalar
+• Özelleştirilebilir bildirim süreleri
+• Normal bildirim veya alarm seçeneği
+• Sesli ve titreşimli uyarılar
+• Tekrarlanan görev desteği
+
+🎨 Modern Tasarım
+• Material Design 2 arayüz
+• Karanlık ve açık tema desteği
+• Kullanıcı dostu navigasyon
+• Sezgisel kullanım
+
+⚡ Performans ve Güvenilirlik
+• Çevrimdışı çalışma desteği
+• Hızlı ve akıcı performans
+• Düşük pil tüketimi
+• Otomatik yedekleme
+
+✨ Diğer Özellikler
+• Görev filtreleme ve arama
+• Tarih bazlı görev görünümü
+• İstatistikler ve raporlar
+• Ücretsiz kullanım
+
+Hatırlatık ile görevlerinizi asla unutmayın, zamanınızı etkili yönetin! 

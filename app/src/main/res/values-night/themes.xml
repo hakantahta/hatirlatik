@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.Hatirlatik" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/purple_200</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_200</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+        <item name="android:navigationBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:windowLightStatusBar">false</item>
+        
+        <!-- Arkaplan renkleri -->
+        <item name="android:colorBackground">@color/dark_background</item>
+        <item name="colorSurface">@color/dark_surface</item>
+        <item name="colorOnBackground">@color/white</item>
+        <item name="colorOnSurface">@color/white</item>
+        
+        <!-- Özel renkler -->
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/dark_secondary_text</item>
+        
+        <!-- Bileşen stilleri -->
+        <item name="materialCardViewStyle">@style/Widget.Hatirlatik.CardView</item>
+        <item name="textInputStyle">@style/Widget.Hatirlatik.TextInputLayout</item>
+        <item name="materialButtonStyle">@style/Widget.Hatirlatik.Button</item>
+        <item name="toolbarStyle">@style/Widget.Hatirlatik.Toolbar</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Hatirlatik.BottomSheetDialog</item>
+    </style>
+</resources>

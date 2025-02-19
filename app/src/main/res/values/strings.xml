@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hatırlatık</string>
+    
+    <!-- Menu items -->
+    <string name="filter_tasks">Görevleri Filtrele</string>
+    <string name="delete_completed_tasks">Tamamlananları Sil</string>
+    <string name="settings">Ayarlar</string>
+    <string name="more_options">Diğer Seçenekler</string>
+    
+    <!-- Actions -->
+    <string name="add_task">Görev Ekle</string>
+    <string name="edit_task">Görevi Düzenle</string>
+    <string name="delete_task">Görevi Sil</string>
+    
+    <!-- Task states -->
+    <string name="task_completed">Görev Tamamlandı</string>
+    <string name="task_active">Görev Aktif</string>
+    
+    <!-- Notifications -->
+    <string name="notification_title">Görev Hatırlatması</string>
+    <string name="notification_channel_name">Görev Bildirimleri</string>
+    <string name="notification_channel_description">Görev hatırlatmaları için bildirimler</string>
+    
+    <!-- Error messages -->
+    <string name="error_task_not_found">Görev bulunamadı</string>
+    <string name="error_saving_task">Görev kaydedilirken hata oluştu</string>
+    <string name="error_deleting_task">Görev silinirken hata oluştu</string>
+    
+    <!-- Dialog messages -->
+    <string name="dialog_delete_title">Görevi Sil</string>
+    <string name="dialog_delete_message">Bu görevi silmek istediğinizden emin misiniz?</string>
+    <string name="dialog_yes">Evet</string>
+    <string name="dialog_no">Hayır</string>
+    
+    <!-- Task form -->
+    <string name="task_title">Görev Başlığı</string>
+    <string name="task_description">Görev Açıklaması</string>
+    <string name="task_date">Görev Tarihi</string>
+    <string name="task_time">Görev Saati</string>
+    <string name="task_title_hint">Görev Başlığı</string>
+    <string name="task_description_hint">Görev Açıklaması</string>
+    <string name="task_date_hint">Tarih Seç</string>
+    <string name="task_time_hint">Saat Seç</string>
+    <string name="task_reminder_hint">Hatırlatma Süresi</string>
+    <string name="reminder_minutes">Hatırlatma Süresi (Dakika)</string>
+    <string name="notification_type">Bildirim Türü</string>
+    <string name="save">Kaydet</string>
+    <string name="cancel">İptal</string>
+    <string name="delete">Sil</string>
+    <string name="edit">Düzenle</string>
+    <string name="complete">Tamamla</string>
+    <string name="task_deleted">Görev Silindi</string>
+    <string name="task_saved">Görev Kaydedildi</string>
+    <string name="error_empty_title">Görev başlığı boş olamaz</string>
+    <string name="error_empty_date">Görev tarihi seçilmedi</string>
+    <string name="error_empty_time">Görev saati seçilmedi</string>
+    <string name="error_past_date">Geçmiş bir tarih seçilemez</string>
+    <string name="reminder_minutes_format">%d dakika önce hatırlat</string>
+    <string name="undo">Geri Al</string>
+    
+    <!-- Empty state -->
+    <string name="empty_task_list">Henüz görev yok</string>
+    <string name="empty_task_list_subtitle">Yeni görev eklemek için + butonuna tıklayın</string>
+    <string name="no_tasks">Henüz görev eklenmemiş\nYeni görev eklemek için + butonuna tıklayın</string>
+
+    <!-- Test reklam ID'leri -->
+    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="app_ad_id">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="admob_app_id">ca-app-pub-xxx~yyy</string>
+    <string name="admob_banner_id">ca-app-pub-xxx/yyy</string>
+
+    <!-- Ayarlar -->
+    <string name="appearance">Görünüm</string>
+    <string name="dark_mode">Karanlık Mod</string>
+    <string name="dark_mode_summary">Karanlık temayı etkinleştir</string>
+    
+    <string name="notifications">Bildirimler</string>
+    <string name="default_reminder_time">Varsayılan Hatırlatma Süresi</string>
+    <string name="default_notification_type">Varsayılan Bildirim Türü</string>
+    <string name="notification_sound">Bildirim Sesi</string>
+    <string name="notification_sound_summary">Bildirimlerde ses çal</string>
+    <string name="notification_vibration">Titreşim</string>
+    <string name="notification_vibration_summary">Bildirimlerde titreşim</string>
+    
+    <string name="ads">Reklamlar</string>
+    <string name="show_ads">Reklamları Göster</string>
+    <string name="show_ads_summary">Uygulamayı desteklemek için reklamları göster</string>
+    
+    <string name="about">Hakkında</string>
+    <string name="version">Versiyon</string>
+    <string name="app_version">1.0.0</string>
+    <string name="privacy_policy">Gizlilik Politikası</string>
+    <string name="privacy_policy_summary">Gizlilik politikamızı görüntüle</string>
+    <string name="task_details">Görev Detayları</string>
+
+    <!-- Arrays -->
+    <string-array name="reminder_times">
+        <item>5 dakika önce</item>
+        <item>10 dakika önce</item>
+        <item>15 dakika önce</item>
+        <item>30 dakika önce</item>
+        <item>1 saat önce</item>
+        <item>2 saat önce</item>
+    </string-array>
+    
+    <string-array name="reminder_times_values">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>120</item>
+    </string-array>
+    
+    <string-array name="notification_types">
+        <item>Bildirim</item>
+        <item>Alarm</item>
+    </string-array>
+    
+    <string-array name="notification_type_values">
+        <item>notification</item>
+        <item>alarm</item>
+    </string-array>
+</resources>
