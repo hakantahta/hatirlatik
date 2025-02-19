@@ -4,22 +4,70 @@ import android.app.Application;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.MediatorLiveData;
 import com.tht.hatirlatik.model.Task;
+import com.tht.hatirlatik.model.TaskFilter;
 import com.tht.hatirlatik.notification.TaskNotificationManager;
 import com.tht.hatirlatik.repository.TaskRepository;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TaskViewModel extends AndroidViewModel {
     private final TaskRepository repository;
     private final TaskNotificationManager notificationManager;
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
+    private final MutableLiveData<TaskFilter> currentFilter = new MutableLiveData<>(TaskFilter.ALL);
+    private final MediatorLiveData<List<Task>> filteredTasks = new MediatorLiveData<>();
+    private final LiveData<List<Task>> allTasks;
 
     public TaskViewModel(Application application) {
         super(application);
         repository = new TaskRepository(application);
         notificationManager = new TaskNotificationManager(application);
+        allTasks = repository.getAllTasks();
+
+        // Görevleri ve filtreyi gözlemle
+        filteredTasks.addSource(allTasks, tasks -> 
+            filterTasks(tasks, currentFilter.getValue()));
+        
+        filteredTasks.addSource(currentFilter, filter -> 
+            filterTasks(allTasks.getValue(), filter));
+    }
+
+    private void filterTasks(List<Task> tasks, TaskFilter filter) {
+        if (tasks == null) {
+            filteredTasks.setValue(null);
+            return;
+        }
+
+        if (filter == null) {
+            filter = TaskFilter.ALL;
+        }
+
+        try {
+            TaskFilter finalFilter = filter;
+            List<Task> filtered = tasks.stream()
+                    .filter(task -> {
+                        switch (finalFilter) {
+                            case ALL:
+                                return true;
+                            case ACTIVE:
+                                return !task.isCompleted();
+                            case COMPLETED:
+                                return task.isCompleted();
+                            default:
+                                return true;
+                        }
+                    })
+                    .collect(Collectors.toList());
+            
+            filteredTasks.setValue(filtered);
+        } catch (Exception e) {
+            errorMessage.setValue("Görevler filtrelenirken bir hata oluştu: " + e.getMessage());
+            filteredTasks.setValue(tasks); // Hata durumunda tüm görevleri göster
+        }
     }
 
     // Görev ekleme
@@ -106,10 +154,15 @@ public class TaskViewModel extends AndroidViewModel {
                 isLoading.postValue(false);
                 // Eğer görev tamamlandıysa hatırlatıcıyı iptal et
                 if (isCompleted) {
-                    repository.getTaskById(taskId).observeForever(task -> {
-                        if (task != null) {
-                            notificationManager.cancelTaskReminder(task);
-                        }
+                    // Main thread'de çalıştır
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        repository.getTaskById(taskId).observeForever(task -> {
+                            if (task != null) {
+                                notificationManager.cancelTaskReminder(task);
+                                // Gözlemlemeyi sonlandır
+                                repository.getTaskById(taskId).removeObserver(taskObserver -> {});
+                            }
+                        });
                     });
                 }
             }
@@ -159,5 +212,19 @@ public class TaskViewModel extends AndroidViewModel {
     // Yükleme durumunu getir
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
+    }
+
+    public void setFilter(TaskFilter filter) {
+        if (filter != null) {
+            currentFilter.setValue(filter);
+        }
+    }
+
+    public LiveData<List<Task>> getTasks() {
+        return filteredTasks;
+    }
+
+    public TaskFilter getCurrentFilter() {
+        return currentFilter.getValue();
     }
 } 

@@ -71,9 +71,13 @@ public class TaskRepository {
         executorService.execute(() -> {
             try {
                 taskDao.updateTaskCompletionStatus(taskId, isCompleted);
-                callback.onSuccess(taskId);
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    callback.onSuccess(taskId);
+                });
             } catch (Exception e) {
-                callback.onError(e);
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    callback.onError(e);
+                });
             }
         });
     }

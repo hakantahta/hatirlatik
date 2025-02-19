@@ -122,4 +122,9 @@
         <item>notification</item>
         <item>alarm</item>
     </string-array>
+
+    <string name="filter">Filtrele</string>
+    <string name="filter_all">Tüm Görevler</string>
+    <string name="filter_active">Aktif Görevler</string>
+    <string name="filter_completed">Tamamlanan Görevler</string>
 </resources>

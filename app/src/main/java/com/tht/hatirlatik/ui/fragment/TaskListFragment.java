@@ -7,6 +7,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -19,6 +20,7 @@ import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.tht.hatirlatik.R;
 import com.tht.hatirlatik.model.Task;
+import com.tht.hatirlatik.model.TaskFilter;
 import com.tht.hatirlatik.ui.adapter.TaskAdapter;
 import com.tht.hatirlatik.viewmodel.TaskViewModel;
 
@@ -91,10 +93,10 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
     }
 
     private void setupObservers() {
-        // Görevleri gözlemle
-        viewModel.getAllTasks().observe(getViewLifecycleOwner(), tasks -> {
+        // Filtrelenmiş görevleri gözlemle
+        viewModel.getTasks().observe(getViewLifecycleOwner(), tasks -> {
             adapter.submitList(tasks);
-            updateEmptyState(tasks.isEmpty());
+            updateEmptyState(tasks == null || tasks.isEmpty());
         });
 
         // Yükleme durumunu gözlemle
@@ -120,6 +122,9 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
         if (item.getItemId() == R.id.action_delete_completed) {
             showDeleteCompletedDialog();
             return true;
+        } else if (item.getItemId() == R.id.action_filter) {
+            showFilterMenu();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -133,6 +138,73 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
                 })
                 .setNegativeButton(R.string.dialog_no, null)
                 .show();
+    }
+
+    private void showFilterMenu() {
+        View menuItemView = requireActivity().findViewById(R.id.action_filter);
+        PopupMenu popup = new PopupMenu(requireContext(), menuItemView);
+        popup.getMenuInflater().inflate(R.menu.menu_filter, popup.getMenu());
+
+        // Mevcut filtreyi işaretle
+        TaskFilter currentFilter = viewModel.getCurrentFilter();
+        if (currentFilter != null) {
+            MenuItem menuItem = null;
+            switch (currentFilter) {
+                case ALL:
+                    menuItem = popup.getMenu().findItem(R.id.filter_all);
+                    break;
+                case ACTIVE:
+                    menuItem = popup.getMenu().findItem(R.id.filter_active);
+                    break;
+                case COMPLETED:
+                    menuItem = popup.getMenu().findItem(R.id.filter_completed);
+                    break;
+            }
+            if (menuItem != null) {
+                menuItem.setChecked(true);
+            }
+        }
+
+        popup.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            TaskFilter newFilter = null;
+
+            if (itemId == R.id.filter_all) {
+                newFilter = TaskFilter.ALL;
+            } else if (itemId == R.id.filter_active) {
+                newFilter = TaskFilter.ACTIVE;
+            } else if (itemId == R.id.filter_completed) {
+                newFilter = TaskFilter.COMPLETED;
+            }
+
+            if (newFilter != null) {
+                item.setChecked(true);
+                viewModel.setFilter(newFilter);
+                showFilterToast(newFilter);
+                return true;
+            }
+            return false;
+        });
+
+        popup.show();
+    }
+
+    private void showFilterToast(TaskFilter filter) {
+        String message;
+        switch (filter) {
+            case ALL:
+                message = getString(R.string.filter_all);
+                break;
+            case ACTIVE:
+                message = getString(R.string.filter_active);
+                break;
+            case COMPLETED:
+                message = getString(R.string.filter_completed);
+                break;
+            default:
+                return;
+        }
+        Snackbar.make(requireView(), message, Snackbar.LENGTH_SHORT).show();
     }
 
     private void updateEmptyState(boolean isEmpty) {
