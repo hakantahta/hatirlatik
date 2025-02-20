@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -44,6 +45,8 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
         private final TextView titleTextView;
         private final TextView descriptionTextView;
         private final TextView dateTimeTextView;
+        private final TextView statusTextView;
+        private final ImageView statusImageView;
         private final ImageButton menuButton;
         private final CardView cardView;
 
@@ -52,6 +55,8 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             titleTextView = itemView.findViewById(R.id.text_task_title);
             descriptionTextView = itemView.findViewById(R.id.text_task_description);
             dateTimeTextView = itemView.findViewById(R.id.text_task_datetime);
+            statusTextView = itemView.findViewById(R.id.text_task_status);
+            statusImageView = itemView.findViewById(R.id.image_task_status);
             menuButton = itemView.findViewById(R.id.image_task_menu);
             cardView = itemView.findViewById(R.id.card_view);
 
@@ -126,11 +131,21 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             descriptionTextView.setText(task.getDescription());
             dateTimeTextView.setText(dateFormat.format(task.getDateTime()));
 
+            // Durum metnini ve göstergesini ayarla
+            statusTextView.setText(task.isCompleted() ? 
+                "Görev aktif değil, tamamlandı" : 
+                "Görev aktif, tamamlanacak");
+            statusImageView.setImageResource(task.isCompleted() ? 
+                R.drawable.task_status_completed : 
+                R.drawable.task_status_active);
+
             // Tamamlanmış görevlerin görünümünü güncelle
             float alpha = task.isCompleted() ? 0.5f : 1.0f;
             titleTextView.setAlpha(alpha);
             descriptionTextView.setAlpha(alpha);
             dateTimeTextView.setAlpha(alpha);
+            statusTextView.setAlpha(alpha);
+            statusImageView.setAlpha(alpha);
             cardView.setAlpha(alpha);
 
             // Görsel geri bildirim için animasyon

@@ -54,6 +54,39 @@
             app:drawableStartCompat="@drawable/ic_calendar"
             tools:text="24 Şubat 2024, 15:30" />
 
+        <ImageView
+            android:id="@+id/image_task_status"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/text_task_status"
+            app:layout_constraintStart_toEndOf="@+id/text_task_status"
+            app:layout_constraintTop_toTopOf="@+id/text_task_status"
+            tools:src="@drawable/task_status_active" />
+
+        <TextView
+            android:id="@+id/text_task_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="?android:attr/textColorSecondary"
+            app:layout_constraintStart_toStartOf="@+id/text_task_datetime"
+            app:layout_constraintTop_toBottomOf="@+id/text_task_datetime"
+            tools:text="Görev aktif, tamamlanacak" />
+
+        <TextView
+            android:id="@+id/text_swipe_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="?android:attr/textColorSecondary"
+            android:text="Durumu değiştirmek için uzun basın"
+            android:textSize="11sp"
+            app:layout_constraintStart_toStartOf="@+id/text_task_status"
+            app:layout_constraintTop_toBottomOf="@+id/text_task_status" />
+
         <ImageButton
             android:id="@+id/image_task_menu"
             android:layout_width="wrap_content"
@@ -64,17 +97,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_more_vert" />
-
-        <TextView
-            android:id="@+id/text_swipe_hint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textAppearance="?attr/textAppearanceCaption"
-            android:textColor="?android:attr/textColorSecondary"
-            android:text="Durumu değiştirmek için uzun basın"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_task_datetime" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
