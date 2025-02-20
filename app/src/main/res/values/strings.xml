@@ -134,4 +134,29 @@
     <string name="filter_all">Tüm Görevler</string>
     <string name="filter_active">Aktif Görevler</string>
     <string name="filter_completed">Tamamlanan Görevler</string>
+
+    <!-- İzin İstekleri -->
+    <string name="permission_notification_title">Bildirim İzni Gerekli</string>
+    <string name="permission_notification_message">Hatırlatık uygulaması, görevlerinizi zamanında hatırlatabilmek için bildirim iznine ihtiyaç duyar. Bildirimlere izin vermezseniz, uygulama sizi görevleriniz hakkında bilgilendiremeyecektir.</string>
+    <string name="permission_notification_denied_title">Bildirim İzni Reddedildi</string>
+    <string name="permission_notification_denied_message">Bildirimlere izin vermediğiniz için Hatırlatık uygulaması görevlerinizi size hatırlatamayacak. İzin vermek için uygulama ayarlarını açabilirsiniz.</string>
+    <string name="permission_alarm_title">Alarm İzni Gerekli</string>
+    <string name="permission_alarm_message">Hatırlatık uygulaması, görevlerinizi tam zamanında hatırlatabilmek için alarm iznine ihtiyaç duyar. Bu izni vermezseniz, bazı hatırlatmalar gecikmeli olarak gelebilir.</string>
+    <string name="button_grant_permission">İzin Ver</string>
+    <string name="button_open_settings">Ayarları Aç</string>
+    <string name="button_cancel">İptal</string>
+    <string name="permission_internet_title">İnternet İzni Gerekli</string>
+    <string name="permission_internet_message">Hatırlatık uygulaması, size daha iyi bir deneyim sunabilmek ve reklamları gösterebilmek için internet erişimine ihtiyaç duyar. İnternet izni vermezseniz, bazı özellikler düzgün çalışmayabilir ve reklamları göremeyebilirsiniz.</string>
+    <string name="permission_internet_denied_title">İnternet İzni Reddedildi</string>
+    <string name="permission_internet_denied_message">İnternet erişimine izin vermediğiniz için bazı özellikler düzgün çalışmayabilir ve reklamları göremeyebilirsiniz. İzin vermek için uygulama ayarlarını açabilirsiniz.</string>
+
+    <!-- İnternet Bağlantısı -->
+    <string name="no_internet_title">İnternet Bağlantısı Gerekli</string>
+    <string name="no_internet_message">Hatırlatık uygulamasını kullanabilmek için internet bağlantısı gereklidir. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.</string>
+    <string name="no_internet_retry">Tekrar Dene</string>
+    <string name="no_internet_settings">İnternet Ayarları</string>
+    <string name="no_internet_exit">Çıkış</string>
+    <string name="checking_internet">İnternet bağlantısı kontrol ediliyor...</string>
+    <string name="internet_connected">İnternet bağlantısı sağlandı</string>
+    <string name="internet_not_connected">İnternet bağlantısı yok</string>
 </resources>

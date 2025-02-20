@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.tht.hatirlatik.R;
 import com.tht.hatirlatik.model.Task;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
@@ -131,10 +132,24 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             descriptionTextView.setText(task.getDescription());
             dateTimeTextView.setText(dateFormat.format(task.getDateTime()));
 
+            // Görev süresinin geçip geçmediğini kontrol et
+            boolean isOverdue = task.getDateTime().before(new Date()) && !task.isCompleted();
+            if (isOverdue) {
+                // Süresi geçmiş görevi otomatik olarak tamamlandı olarak işaretle
+                task.setCompleted(true);
+                listener.onTaskCheckedChanged(task, true);
+            }
+
             // Durum metnini ve göstergesini ayarla
-            statusTextView.setText(task.isCompleted() ? 
-                "Görev aktif değil, tamamlandı" : 
-                "Görev aktif, tamamlanacak");
+            String statusText;
+            if (isOverdue) {
+                statusText = "Tarihi geçmiş görev";
+            } else {
+                statusText = task.isCompleted() ? 
+                    "Görev aktif değil, tamamlandı" : 
+                    "Görev aktif, tamamlanacak";
+            }
+            statusTextView.setText(statusText);
             statusImageView.setImageResource(task.isCompleted() ? 
                 R.drawable.task_status_completed : 
                 R.drawable.task_status_active);
