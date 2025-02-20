@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/taskListFragment"
         android:name="com.tht.hatirlatik.ui.fragment.TaskListFragment"
-        android:label="@string/app_name"
+        android:label="@string/task_list"
         tools:layout="@layout/fragment_task_list">
         
         <action

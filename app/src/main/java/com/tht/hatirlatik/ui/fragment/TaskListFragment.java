@@ -13,12 +13,15 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.tht.hatirlatik.R;
+import com.tht.hatirlatik.databinding.FragmentTaskListBinding;
 import com.tht.hatirlatik.model.Task;
 import com.tht.hatirlatik.model.TaskFilter;
 import com.tht.hatirlatik.ui.adapter.TaskAdapter;
@@ -32,6 +35,9 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
     private RecyclerView recyclerView;
     private CircularProgressIndicator progressBar;
     private FloatingActionButton fabAddTask;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private View rootView;
+    private FragmentTaskListBinding binding;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -43,7 +49,8 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                             @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_task_list, container, false);
+        binding = FragmentTaskListBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
@@ -57,8 +64,10 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
         viewModel = new ViewModelProvider(this).get(TaskViewModel.class);
         
         // Adapter'ı başlat
-        adapter = new TaskAdapter(this);
-        recyclerView.setAdapter(adapter);
+        setupRecyclerView();
+        
+        // SwipeRefreshLayout'u ayarla
+        setupSwipeRefresh();
         
         // Observer'ları ayarla
         setupObservers();
@@ -87,29 +96,61 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
     }
 
     private void initViews(View view) {
-        recyclerView = view.findViewById(R.id.recycler_view_tasks);
-        emptyStateView = view.findViewById(R.id.empty_state);
-        progressBar = view.findViewById(R.id.progress_bar);
+        recyclerView = binding.recyclerViewTasks;
+        emptyStateView = binding.emptyState;
+        progressBar = binding.progressBar;
+        swipeRefreshLayout = binding.swipeRefresh;
+    }
+
+    private void setupSwipeRefresh() {
+        // SwipeRefreshLayout'un renklerini ayarla
+        swipeRefreshLayout.setColorSchemeResources(
+            R.color.primary,
+            R.color.primary_dark,
+            R.color.accent
+        );
+        
+        // Yenileme listener'ını ayarla
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            // Görev listesini yenile
+            viewModel.refreshTasks();
+        });
     }
 
     private void setupObservers() {
-        // Filtrelenmiş görevleri gözlemle
+        // Filtrelenmiş görev listesini gözlemle
         viewModel.getTasks().observe(getViewLifecycleOwner(), tasks -> {
-            adapter.submitList(tasks);
-            updateEmptyState(tasks == null || tasks.isEmpty());
+            if (tasks != null) {
+                adapter.submitList(null); // Önce listeyi temizle
+                adapter.submitList(tasks); // Yeni listeyi set et
+                updateEmptyState(tasks.isEmpty());
+            }
         });
 
         // Yükleme durumunu gözlemle
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            // Yükleme bittiğinde yenileme animasyonunu durdur
+            if (!isLoading) {
+                swipeRefreshLayout.setRefreshing(false);
+            }
         });
 
         // Hata mesajlarını gözlemle
         viewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
             if (errorMessage != null && !errorMessage.isEmpty()) {
                 showSnackbar(errorMessage);
+                // Hata durumunda yenileme animasyonunu durdur
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
+    }
+
+    private void setupRecyclerView() {
+        adapter = new TaskAdapter(this);
+        binding.recyclerViewTasks.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.recyclerViewTasks.setAdapter(adapter);
+        binding.recyclerViewTasks.setHasFixedSize(true);
     }
 
     @Override
@@ -213,8 +254,8 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
     }
 
     private void showSnackbar(String message) {
-        if (getView() != null) {
-            Snackbar.make(getView(), message, Snackbar.LENGTH_LONG).show();
+        if (binding != null) {
+            Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_LONG).show();
         }
     }
 
@@ -229,7 +270,18 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
 
     @Override
     public void onTaskCheckedChanged(Task task, boolean isChecked) {
+        // Direkt olarak durumu güncelle
         viewModel.updateTaskCompletionStatus(task.getId(), isChecked);
+        
+        // Snackbar ile bilgilendirme yap
+        String message = String.format("Görev %s olarak işaretlendi", 
+            isChecked ? "tamamlandı" : "aktif");
+            
+        Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_SHORT)
+            .setAction("Geri Al", v -> {
+                viewModel.updateTaskCompletionStatus(task.getId(), !isChecked);
+            })
+            .show();
     }
 
     @Override

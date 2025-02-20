@@ -49,7 +49,17 @@ public class MainActivity extends AppCompatActivity {
                 ).build();
 
                 // Toolbar ile navigation'ı bağla
-                NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+                NavigationUI.setupWithNavController(binding.toolbar, navController, appBarConfiguration);
+
+                // Navigation değişikliklerini dinle
+                navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+                    // Toolbar başlığını güncelle
+                    if (destination.getId() == R.id.taskDetailFragment) {
+                        binding.toolbar.setTitle(R.string.task_details);
+                    } else if (destination.getId() == R.id.taskListFragment) {
+                        binding.toolbar.setTitle(R.string.task_list);
+                    }
+                });
 
                 // FAB click listener'ı ayarla
                 binding.fabAddTask.setOnClickListener(view -> {

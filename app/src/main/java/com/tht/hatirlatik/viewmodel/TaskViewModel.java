@@ -21,6 +21,9 @@ public class TaskViewModel extends AndroidViewModel {
     private final MutableLiveData<TaskFilter> currentFilter = new MutableLiveData<>(TaskFilter.ALL);
     private final MediatorLiveData<List<Task>> filteredTasks = new MediatorLiveData<>();
     private final LiveData<List<Task>> allTasks;
+    private final MutableLiveData<Boolean> checkboxState = new MutableLiveData<>();
+    private final MutableLiveData<Long> lastCheckedTaskId = new MutableLiveData<>();
+    private final MutableLiveData<List<Task>> taskListLiveData = new MutableLiveData<>();
 
     public TaskViewModel(Application application) {
         super(application);
@@ -152,18 +155,22 @@ public class TaskViewModel extends AndroidViewModel {
             @Override
             public void onSuccess(long taskId) {
                 isLoading.postValue(false);
-                // Eğer görev tamamlandıysa hatırlatıcıyı iptal et
-                if (isCompleted) {
-                    // Main thread'de çalıştır
-                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                        repository.getTaskById(taskId).observeForever(task -> {
-                            if (task != null) {
-                                notificationManager.cancelTaskReminder(task);
-                                // Gözlemlemeyi sonlandır
-                                repository.getTaskById(taskId).removeObserver(taskObserver -> {});
-                            }
-                        });
-                    });
+                // Mevcut görev listesini al
+                List<Task> currentTasks = allTasks.getValue();
+                if (currentTasks != null) {
+                    // Güncellenen görevi bul ve durumunu güncelle
+                    for (Task task : currentTasks) {
+                        if (task.getId() == taskId) {
+                            task.setCompleted(isCompleted);
+                            break;
+                        }
+                    }
+                    
+                    // Filtrelenmiş listeyi güncelle
+                    filterTasks(currentTasks, currentFilter.getValue());
+                    
+                    // UI'yi hemen güncelle
+                    taskListLiveData.postValue(currentTasks);
                 }
             }
 
@@ -226,5 +233,38 @@ public class TaskViewModel extends AndroidViewModel {
 
     public TaskFilter getCurrentFilter() {
         return currentFilter.getValue();
+    }
+
+    public void refreshTasks() {
+        isLoading.setValue(true);
+        // Repository'den güncel verileri çek
+        repository.getAllTasks().observeForever(tasks -> {
+            if (tasks != null) {
+                // Mevcut filtreyi al ve uygula
+                TaskFilter currentFilterValue = currentFilter.getValue();
+                filterTasks(tasks, currentFilterValue);
+                taskListLiveData.setValue(filteredTasks.getValue()); // UI'yi güncelle
+            }
+            isLoading.setValue(false);
+            // Observer'ı kaldır
+            repository.getAllTasks().removeObserver(taskListObserver -> {});
+        });
+    }
+
+    public LiveData<Boolean> getCheckboxState() {
+        return checkboxState;
+    }
+
+    public LiveData<Long> getLastCheckedTaskId() {
+        return lastCheckedTaskId;
+    }
+
+    public void setCheckboxState(long taskId, boolean state) {
+        lastCheckedTaskId.setValue(taskId);
+        checkboxState.setValue(state);
+    }
+
+    public LiveData<List<Task>> getTaskListLiveData() {
+        return taskListLiveData;
     }
 } 

@@ -36,6 +36,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private void setupDarkModePreference() {
         SwitchPreferenceCompat darkModePreference = findPreference("dark_mode");
         if (darkModePreference != null) {
+            // Sistem temasına göre başlangıç durumunu ayarla
+            int currentNightMode = getResources().getConfiguration().uiMode 
+                    & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+            darkModePreference.setChecked(
+                currentNightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES
+            );
+            
             darkModePreference.setOnPreferenceChangeListener((preference, newValue) -> {
                 boolean darkModeEnabled = (Boolean) newValue;
                 AppCompatDelegate.setDefaultNightMode(

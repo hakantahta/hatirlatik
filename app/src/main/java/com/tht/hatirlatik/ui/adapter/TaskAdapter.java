@@ -1,13 +1,13 @@
 package com.tht.hatirlatik.ui.adapter;
 
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -44,17 +44,18 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
         private final TextView titleTextView;
         private final TextView descriptionTextView;
         private final TextView dateTimeTextView;
-        private final CheckBox checkBox;
         private final ImageButton menuButton;
+        private final CardView cardView;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
             titleTextView = itemView.findViewById(R.id.text_task_title);
             descriptionTextView = itemView.findViewById(R.id.text_task_description);
             dateTimeTextView = itemView.findViewById(R.id.text_task_datetime);
-            checkBox = itemView.findViewById(R.id.checkbox_task);
             menuButton = itemView.findViewById(R.id.image_task_menu);
+            cardView = itemView.findViewById(R.id.card_view);
 
+            // Kısa tıklama ile detay sayfasına git
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION) {
@@ -62,40 +63,106 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
                 }
             });
 
-            checkBox.setOnClickListener(v -> {
+            // Uzun basma ile görevi tamamla/aktifleştir
+            itemView.setOnLongClickListener(v -> {
                 int position = getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION) {
-                    listener.onTaskCheckedChanged(getItem(position), checkBox.isChecked());
+                    Task task = getItem(position);
+                    listener.onTaskCheckedChanged(task, !task.isCompleted());
+                    
+                    // Görsel geri bildirim için hafif bir animasyon
+                    cardView.animate()
+                        .scaleX(0.95f)
+                        .scaleY(0.95f)
+                        .setDuration(100)
+                        .withEndAction(() -> {
+                            cardView.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(100)
+                                .start();
+                        })
+                        .start();
+                    return true;
                 }
+                return false;
             });
 
+            // Menü butonu ile popup menü göster
             menuButton.setOnClickListener(v -> {
                 int position = getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION) {
-                    listener.onTaskDeleteClicked(getItem(position));
+                    Task task = getItem(position);
+                    showPopupMenu(v, task);
                 }
             });
+        }
+
+        private void showPopupMenu(View view, Task task) {
+            PopupMenu popup = new PopupMenu(view.getContext(), view);
+            popup.getMenuInflater().inflate(R.menu.menu_task_item, popup.getMenu());
+            
+            // Tamamlanma durumuna göre menü metnini güncelle
+            popup.getMenu().findItem(R.id.action_toggle_complete)
+                .setTitle(task.isCompleted() ? "Aktif Yap" : "Tamamla");
+
+            popup.setOnMenuItemClickListener(item -> {
+                int itemId = item.getItemId();
+                if (itemId == R.id.action_toggle_complete) {
+                    listener.onTaskCheckedChanged(task, !task.isCompleted());
+                    return true;
+                } else if (itemId == R.id.action_delete) {
+                    listener.onTaskDeleteClicked(task);
+                    return true;
+                }
+                return false;
+            });
+
+            popup.show();
         }
 
         public void bind(Task task) {
             titleTextView.setText(task.getTitle());
             descriptionTextView.setText(task.getDescription());
             dateTimeTextView.setText(dateFormat.format(task.getDateTime()));
-            checkBox.setChecked(task.isCompleted());
 
             // Tamamlanmış görevlerin görünümünü güncelle
             float alpha = task.isCompleted() ? 0.5f : 1.0f;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                titleTextView.setAlpha(alpha);
-                descriptionTextView.setAlpha(alpha);
-                dateTimeTextView.setAlpha(alpha);
+            titleTextView.setAlpha(alpha);
+            descriptionTextView.setAlpha(alpha);
+            dateTimeTextView.setAlpha(alpha);
+            cardView.setAlpha(alpha);
+
+            // Görsel geri bildirim için animasyon
+            cardView.animate()
+                .alpha(alpha)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(150)
+                .start();
+
+            // Kartın arka plan rengini güncelle
+            int backgroundColor;
+            int nightModeFlags = cardView.getContext().getResources().getConfiguration().uiMode & 
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+            boolean isNightMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+            
+            if (isNightMode) {
+                // Karanlık tema
+                backgroundColor = task.isCompleted() ? 
+                    cardView.getContext().getResources().getColor(R.color.task_completed_background_dark) :
+                    cardView.getContext().getResources().getColor(R.color.task_active_background_dark);
             } else {
-                // API 11'den düşük sürümler için alternatif yöntem
-                int visibility = task.isCompleted() ? View.GONE : View.VISIBLE;
-                titleTextView.setVisibility(visibility);
-                descriptionTextView.setVisibility(visibility);
-                dateTimeTextView.setVisibility(visibility);
+                // Açık tema
+                backgroundColor = task.isCompleted() ? 
+                    cardView.getContext().getResources().getColor(R.color.task_completed_background) :
+                    cardView.getContext().getResources().getColor(R.color.task_active_background);
             }
+            cardView.setCardBackgroundColor(backgroundColor);
+        }
+
+        public CardView getCardView() {
+            return cardView;
         }
     }
 

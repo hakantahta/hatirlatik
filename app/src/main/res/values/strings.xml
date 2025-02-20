@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hatırlatık</string>
+    <string name="task_list">Görev Listesi</string>
+    <string name="task_details">Görev Detayları</string>
     
     <!-- Menu items -->
     <string name="filter_tasks">Görevleri Filtrele</string>
@@ -32,6 +34,12 @@
     <string name="dialog_delete_message">Bu görevi silmek istediğinizden emin misiniz?</string>
     <string name="dialog_yes">Evet</string>
     <string name="dialog_no">Hayır</string>
+    
+    <!-- Task Status Dialog -->
+    <string name="dialog_task_status_title">Görev Durumu Değişikliği</string>
+    <string name="dialog_task_status_message">Bu görevin durumunu değiştirmek istediğinizden emin misiniz?</string>
+    <string name="task_marked_completed">Görev tamamlandı olarak işaretlendi</string>
+    <string name="task_marked_active">Görev aktif olarak işaretlendi</string>
     
     <!-- Task form -->
     <string name="task_title">Görev Başlığı</string>
@@ -92,7 +100,6 @@
     <string name="app_version">1.0.0</string>
     <string name="privacy_policy">Gizlilik Politikası</string>
     <string name="privacy_policy_summary">Gizlilik politikamızı görüntüle</string>
-    <string name="task_details">Görev Detayları</string>
 
     <!-- Arrays -->
     <string-array name="reminder_times">

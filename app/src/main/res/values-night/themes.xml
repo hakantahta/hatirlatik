@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.Hatirlatik" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.Hatirlatik" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_200</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -25,6 +25,10 @@
         <!-- Özel renkler -->
         <item name="android:textColorPrimary">@color/white</item>
         <item name="android:textColorSecondary">@color/dark_secondary_text</item>
+        
+        <!-- Kart renkleri -->
+        <item name="cardBackgroundColor">@color/dark_surface</item>
+        <item name="android:textColor">@color/white</item>
         
         <!-- Bileşen stilleri -->
         <item name="materialCardViewStyle">@style/Widget.Hatirlatik.CardView</item>
