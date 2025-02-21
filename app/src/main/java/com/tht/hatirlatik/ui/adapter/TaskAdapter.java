@@ -134,25 +134,24 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
 
             // Görev süresinin geçip geçmediğini kontrol et
             boolean isOverdue = task.getDateTime().before(new Date()) && !task.isCompleted();
-            if (isOverdue) {
-                // Süresi geçmiş görevi otomatik olarak tamamlandı olarak işaretle
-                task.setCompleted(true);
-                listener.onTaskCheckedChanged(task, true);
-            }
 
             // Durum metnini ve göstergesini ayarla
             String statusText;
+            int statusIcon;
+            
             if (isOverdue) {
-                statusText = "Tarihi geçmiş görev";
+                statusText = "Görev saati geçti!";
+                statusIcon = R.drawable.task_status_overdue;
+            } else if (task.isCompleted()) {
+                statusText = "Görev aktif değil, tamamlandı";
+                statusIcon = R.drawable.task_status_completed;
             } else {
-                statusText = task.isCompleted() ? 
-                    "Görev aktif değil, tamamlandı" : 
-                    "Görev aktif, tamamlanacak";
+                statusText = "Görev aktif, tamamlanacak";
+                statusIcon = R.drawable.task_status_active;
             }
+            
             statusTextView.setText(statusText);
-            statusImageView.setImageResource(task.isCompleted() ? 
-                R.drawable.task_status_completed : 
-                R.drawable.task_status_active);
+            statusImageView.setImageResource(statusIcon);
 
             // Tamamlanmış görevlerin görünümünü güncelle
             float alpha = task.isCompleted() ? 0.5f : 1.0f;
