@@ -48,6 +48,8 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
         private final TextView dateTimeTextView;
         private final TextView statusTextView;
         private final ImageView statusImageView;
+        private final TextView overdueTextView;
+        private final ImageView overdueImageView;
         private final ImageButton menuButton;
         private final CardView cardView;
 
@@ -58,6 +60,8 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             dateTimeTextView = itemView.findViewById(R.id.text_task_datetime);
             statusTextView = itemView.findViewById(R.id.text_task_status);
             statusImageView = itemView.findViewById(R.id.image_task_status);
+            overdueTextView = itemView.findViewById(R.id.text_task_overdue);
+            overdueImageView = itemView.findViewById(R.id.image_task_overdue);
             menuButton = itemView.findViewById(R.id.image_task_menu);
             cardView = itemView.findViewById(R.id.card_view);
 
@@ -133,25 +137,25 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             dateTimeTextView.setText(dateFormat.format(task.getDateTime()));
 
             // Görev süresinin geçip geçmediğini kontrol et
-            boolean isOverdue = task.getDateTime().before(new Date()) && !task.isCompleted();
+            boolean isOverdue = task.getDateTime().before(new Date());
 
-            // Durum metnini ve göstergesini ayarla
-            String statusText;
-            int statusIcon;
-            
-            if (isOverdue) {
-                statusText = "Görev saati geçti!";
-                statusIcon = R.drawable.task_status_overdue;
-            } else if (task.isCompleted()) {
-                statusText = "Görev aktif değil, tamamlandı";
-                statusIcon = R.drawable.task_status_completed;
+            // Görev durumu metnini ve göstergesini ayarla
+            if (task.isCompleted()) {
+                statusTextView.setText("Görev aktif değil, tamamlandı");
+                statusImageView.setImageResource(R.drawable.task_status_completed);
             } else {
-                statusText = "Görev aktif, tamamlanacak";
-                statusIcon = R.drawable.task_status_active;
+                statusTextView.setText("Görev aktif, tamamlanacak");
+                statusImageView.setImageResource(R.drawable.task_status_active);
             }
-            
-            statusTextView.setText(statusText);
-            statusImageView.setImageResource(statusIcon);
+
+            // Tarihi geçen görevler için ek bildirim göster/gizle
+            if (isOverdue && !task.isCompleted()) {
+                overdueTextView.setVisibility(View.VISIBLE);
+                overdueImageView.setVisibility(View.VISIBLE);
+            } else {
+                overdueTextView.setVisibility(View.GONE);
+                overdueImageView.setVisibility(View.GONE);
+            }
 
             // Tamamlanmış görevlerin görünümünü güncelle
             float alpha = task.isCompleted() ? 0.5f : 1.0f;
@@ -160,6 +164,8 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             dateTimeTextView.setAlpha(alpha);
             statusTextView.setAlpha(alpha);
             statusImageView.setAlpha(alpha);
+            overdueTextView.setAlpha(alpha);
+            overdueImageView.setAlpha(alpha);
             cardView.setAlpha(alpha);
 
             // Görsel geri bildirim için animasyon
