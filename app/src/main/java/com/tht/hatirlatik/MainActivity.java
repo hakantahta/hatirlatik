@@ -29,6 +29,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.tht.hatirlatik.databinding.ActivityMainBinding;
 import com.tht.hatirlatik.utils.InternetHelper;
+import com.tht.hatirlatik.utils.WidgetHelper;
+
+import android.content.SharedPreferences;
+
+import android.os.Handler;
+
 
 /**
  * Ana aktivite sınıfı.
@@ -41,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
     private NavController navController;
     private ActivityResultLauncher<String> requestPermissionLauncher;
     private InternetHelper internetHelper;
+    private WidgetHelper widgetHelper;
     private androidx.appcompat.app.AlertDialog noInternetDialog;
 
     @Override
@@ -53,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             // İnternet yardımcısını başlat
             internetHelper = new InternetHelper(this);
             internetHelper.setConnectionListener(this);
+
+            // Widget yardımcısını başlat
+            widgetHelper = new WidgetHelper(this);
 
             MaterialToolbar toolbar = binding.toolbar;
             setSupportActionBar(toolbar);
@@ -96,6 +106,9 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             if (!internetHelper.isInternetAvailable()) {
                 showNoInternetDialog();
             }
+
+            // Widget önerisi kontrolü
+            checkAndShowWidgetSuggestion();
 
         } catch (Exception e) {
             Log.e(TAG, "onCreate: " + e.getMessage(), e);
@@ -315,5 +328,33 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
     @Override
     public boolean onSupportNavigateUp() {
         return navController != null && (navController.navigateUp() || super.onSupportNavigateUp());
+    }
+
+    private void checkAndShowWidgetSuggestion() {
+        SharedPreferences prefs = getSharedPreferences("app_preferences", MODE_PRIVATE);
+        boolean isWidgetSuggestionShown = prefs.getBoolean("widget_suggestion_shown", false);
+
+        if (!isWidgetSuggestionShown) {
+            new MaterialAlertDialogBuilder(this)
+                .setTitle("Widget Eklemek İster misiniz?")
+                .setMessage("Görevlerinizi ana ekranda görüntülemek için widget ekleyebilirsiniz. Widget eklemek ister misiniz?")
+                .setPositiveButton("Evet", (dialog, which) -> {
+                    // Widget ekleme işlemini başlat
+                    if (widgetHelper.canAddWidgets()) {
+                        widgetHelper.addWidgetToHomeScreen();
+                    } else {
+                        Toast.makeText(this, "Widget eklemek için ayarları açıyorum...", Toast.LENGTH_SHORT).show();
+                        widgetHelper.openWidgetSettings();
+                    }
+                    // Dialog gösterildi olarak işaretle
+                    prefs.edit().putBoolean("widget_suggestion_shown", true).apply();
+                })
+                .setNegativeButton("Hayır", (dialog, which) -> {
+                    // Dialog gösterildi olarak işaretle
+                    prefs.edit().putBoolean("widget_suggestion_shown", true).apply();
+                })
+                .setNeutralButton("Daha Sonra", null)
+                .show();
+        }
     }
 }

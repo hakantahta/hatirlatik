@@ -8,11 +8,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.widget.RemoteViews;
 import android.content.ComponentName;
+import android.util.Log;
 
 import com.tht.hatirlatik.R;
 import com.tht.hatirlatik.MainActivity;
 
 public class TaskListWidget extends AppWidgetProvider {
+    private static final String TAG = "TaskListWidget";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -40,25 +42,32 @@ public class TaskListWidget extends AppWidgetProvider {
     }
 
     private void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
-        // RemoteViews nesnesini oluştur
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.task_list_widget);
+        try {
+            // RemoteViews nesnesini oluştur
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.task_list_widget);
 
-        // Widget'a tıklandığında ana uygulamayı açacak intent
-        Intent intent = new Intent(context, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        views.setOnClickPendingIntent(R.id.widget_title, pendingIntent);
+            // Widget'a tıklandığında ana uygulamayı açacak intent
+            Intent intent = new Intent(context, MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            views.setOnClickPendingIntent(R.id.widget_title, pendingIntent);
 
-        // ListView için RemoteViewsService'i ayarla
-        Intent serviceIntent = new Intent(context, TaskListWidgetService.class);
-        serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        serviceIntent.setData(Uri.parse(serviceIntent.toUri(Intent.URI_INTENT_SCHEME)));
-        views.setRemoteAdapter(R.id.widget_list_view, serviceIntent);
+            // ListView için RemoteViewsService'i ayarla
+            Intent serviceIntent = new Intent(context, TaskListWidgetService.class);
+            serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            serviceIntent.setData(Uri.parse(serviceIntent.toUri(Intent.URI_INTENT_SCHEME)));
+            views.setRemoteAdapter(R.id.widget_list_view, serviceIntent);
 
-        // Boş durum için görünümü ayarla
-        views.setEmptyView(R.id.widget_list_view, R.id.empty_view);
+            // Boş durum için görünümü ayarla
+            views.setEmptyView(R.id.widget_list_view, R.id.empty_view);
 
-        // Widget'ı güncelle
-        appWidgetManager.updateAppWidget(appWidgetId, views);
+            // Widget'ı güncelle
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+            
+            // Widget verilerini güncelle
+            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list_view);
+        } catch (Exception e) {
+            Log.e(TAG, "Widget güncellenirken hata oluştu: " + e.getMessage());
+        }
     }
 } 
