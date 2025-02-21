@@ -2,6 +2,7 @@ package com.tht.hatirlatik.widget;
 
 import android.content.Context;
 import android.content.Intent;
+import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 import java.text.SimpleDateFormat;
@@ -53,8 +54,13 @@ public class TaskListRemoteViewsFactory implements RemoteViewsService.RemoteView
 
         Task task = tasks.get(position);
         RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.widget_task_item);
+        
+        // Görev başlığı ve tarihini ayarla
         rv.setTextViewText(R.id.task_title, task.getTitle());
         rv.setTextViewText(R.id.task_date, dateFormat.format(task.getDateTime()));
+        
+        // Durum göstergesini ayarla
+        rv.setViewVisibility(R.id.task_status_indicator, View.VISIBLE);
 
         // Görev detayına gitmek için intent ayarla
         Intent fillInIntent = new Intent();
