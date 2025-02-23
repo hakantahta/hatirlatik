@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 import android.util.Log;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 
 import com.tht.hatirlatik.R;
 import com.tht.hatirlatik.database.AppDatabase;
@@ -14,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 public class TaskListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     private static final String TAG = "TaskListRemoteViewsFactory";
@@ -32,23 +35,39 @@ public class TaskListRemoteViewsFactory implements RemoteViewsService.RemoteView
     public void onCreate() {
         try {
             database = AppDatabase.getInstance(context);
+            loadTasks();
         } catch (Exception e) {
             Log.e(TAG, "Veritabanı başlatılırken hata: " + e.getMessage());
+            database = null;
+        }
+    }
+
+    private void loadTasks() {
+        if (database == null) {
+            Log.e(TAG, "Veritabanı başlatılmamış");
+            tasks = new ArrayList<>();
+            return;
+        }
+
+        try {
+            // Senkron olarak yükle
+            List<Task> newTasks = database.taskDao().getActiveTasksForWidget();
+            if (newTasks != null) {
+                tasks = new ArrayList<>(newTasks);
+                Log.d(TAG, "Widget için " + tasks.size() + " aktif görev yüklendi");
+            } else {
+                tasks = new ArrayList<>();
+                Log.w(TAG, "Veritabanından görev listesi alınamadı");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Veriler yüklenirken hata: " + e.getMessage());
+            tasks = new ArrayList<>();
         }
     }
 
     @Override
     public void onDataSetChanged() {
-        try {
-            if (database != null) {
-                // Aktif görevleri al
-                tasks = database.taskDao().getActiveTasksForWidget();
-                Log.d(TAG, "Widget için " + tasks.size() + " aktif görev yüklendi");
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Veriler güncellenirken hata: " + e.getMessage());
-            tasks = new ArrayList<>();
-        }
+        loadTasks();
     }
 
     @Override
@@ -71,18 +90,12 @@ public class TaskListRemoteViewsFactory implements RemoteViewsService.RemoteView
             Task task = tasks.get(position);
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_task_item);
 
-            // Görev başlığını ayarla
             views.setTextViewText(R.id.task_title, task.getTitle());
-
-            // Görev tarihini ayarla
             String formattedDate = dateFormat.format(task.getDateTime());
             views.setTextViewText(R.id.task_date, formattedDate);
-
-            // Durum göstergesini ayarla
             views.setInt(R.id.task_status_indicator, "setBackgroundResource", 
                     task.isCompleted() ? R.color.task_status_completed : R.color.accent);
 
-            // Tıklama için fillInIntent ayarla
             Intent fillInIntent = new Intent();
             fillInIntent.putExtra("task_id", task.getId());
             views.setOnClickFillInIntent(R.id.widget_task_item, fillInIntent);

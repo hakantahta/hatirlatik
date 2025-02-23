@@ -4,20 +4,19 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="8dp">
+    android:padding="8dp"
+    android:background="@android:color/white">
 
-    <ImageView
+    <View
         android:id="@+id/task_status_indicator"
-        android:layout_width="12dp"
-        android:layout_height="12dp"
-        android:layout_gravity="center_vertical"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/task_status_indicator" />
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:background="@color/accent"
+        android:layout_marginEnd="8dp"/>
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:orientation="vertical">
 
         <TextView
@@ -26,8 +25,8 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="@android:color/black"
-            android:ellipsize="end"
-            android:maxLines="1"/>
+            android:maxLines="2"
+            android:ellipsize="end"/>
 
         <TextView
             android:id="@+id/task_date"
@@ -35,7 +34,8 @@
             android:layout_height="wrap_content"
             android:textSize="12sp"
             android:textColor="@android:color/darker_gray"
-            android:layout_marginTop="2dp"/>
+            android:layout_marginTop="4dp"/>
 
     </LinearLayout>
+
 </LinearLayout> 

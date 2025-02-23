@@ -18,8 +18,39 @@ public class TaskListWidget extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        // Her widget güncellemesi için
         for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId);
+            try {
+                // Ana aktiviteyi açmak için intent oluştur
+                Intent intent = new Intent(context, MainActivity.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+                // ListView için RemoteViews servisini ayarla
+                Intent serviceIntent = new Intent(context, TaskListWidgetService.class);
+                serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+
+                // RemoteViews oluştur ve yapılandır
+                RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.task_list_widget);
+                views.setRemoteAdapter(R.id.widget_list_view, serviceIntent);
+                views.setEmptyView(R.id.widget_list_view, R.id.empty_view);
+
+                // Header'a tıklama olayını ekle
+                views.setOnClickPendingIntent(R.id.widget_header, pendingIntent);
+
+                // Liste öğelerine tıklama için template oluştur
+                Intent itemIntent = new Intent(context, MainActivity.class);
+                PendingIntent itemPendingIntent = PendingIntent.getActivity(context, 0, itemIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                views.setPendingIntentTemplate(R.id.widget_list_view, itemPendingIntent);
+
+                // Widget'ı güncelle
+                appWidgetManager.updateAppWidget(appWidgetId, views);
+                
+                Log.d(TAG, "Widget başarıyla güncellendi: " + appWidgetId);
+            } catch (Exception e) {
+                Log.e(TAG, "Widget güncellenirken hata: " + e.getMessage());
+            }
         }
     }
 
@@ -38,36 +69,6 @@ public class TaskListWidget extends AppWidgetProvider {
             
             // Sonra widget verilerini güncelle
             appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_view);
-        }
-    }
-
-    private void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
-        try {
-            // RemoteViews nesnesini oluştur
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.task_list_widget);
-
-            // Widget'a tıklandığında ana uygulamayı açacak intent
-            Intent intent = new Intent(context, MainActivity.class);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            views.setOnClickPendingIntent(R.id.widget_title, pendingIntent);
-
-            // ListView için RemoteViewsService'i ayarla
-            Intent serviceIntent = new Intent(context, TaskListWidgetService.class);
-            serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-            serviceIntent.setData(Uri.parse(serviceIntent.toUri(Intent.URI_INTENT_SCHEME)));
-            views.setRemoteAdapter(R.id.widget_list_view, serviceIntent);
-
-            // Boş durum için görünümü ayarla
-            views.setEmptyView(R.id.widget_list_view, R.id.empty_view);
-
-            // Widget'ı güncelle
-            appWidgetManager.updateAppWidget(appWidgetId, views);
-            
-            // Widget verilerini güncelle
-            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list_view);
-        } catch (Exception e) {
-            Log.e(TAG, "Widget güncellenirken hata oluştu: " + e.getMessage());
         }
     }
 } 
