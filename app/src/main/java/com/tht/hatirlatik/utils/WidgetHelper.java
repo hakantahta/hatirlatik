@@ -33,50 +33,51 @@ public class WidgetHelper {
         return false;
     }
 
-    public void addWidgetToHomeScreen() {
+    public void addWidgetToHomeScreen(OnWidgetAddCallback callback) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 AppWidgetManager appWidgetManager = context.getSystemService(AppWidgetManager.class);
                 ComponentName widgetProvider = new ComponentName(context, TaskListWidget.class);
 
-                if (appWidgetManager != null && appWidgetManager.isRequestPinAppWidgetSupported()) {
+                if (appWidgetManager.isRequestPinAppWidgetSupported()) {
                     appWidgetManager.requestPinAppWidget(widgetProvider, null, null);
-                    Toast.makeText(context, "Widget başarıyla eklendi!", Toast.LENGTH_SHORT).show();
+                    callback.onSuccess();
                 } else {
-                    openWidgetSettings();
+                    showManualWidgetInstructions(callback);
                 }
             } else {
-                openWidgetSettings();
+                showManualWidgetInstructions(callback);
             }
         } catch (Exception e) {
             Log.e(TAG, "Widget eklenirken hata oluştu: " + e.getMessage());
-            Toast.makeText(context, "Widget eklenirken bir hata oluştu", Toast.LENGTH_SHORT).show();
-            openWidgetSettings();
+            callback.onError(e.getMessage());
+            showManualWidgetInstructions(callback);
         }
     }
 
-    public void openWidgetSettings() {
-        try {
-            // Ana ekrana git
-            Intent homeIntent = new Intent(Intent.ACTION_MAIN);
-            homeIntent.addCategory(Intent.CATEGORY_HOME);
-            homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(homeIntent);
-
-            // Kısa bir gecikme ile talimatları göster
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                new MaterialAlertDialogBuilder(context)
-                    .setTitle("Widget Nasıl Eklenir?")
-                    .setMessage("1. Ana ekranda boş bir alana uzun basın\n" +
-                              "2. Açılan menüden 'Widgets' seçeneğine dokunun\n" +
-                              "3. Widgetlar listesinde 'Hatırlatık' widget'ını bulun\n" +
-                              "4. Widget'ı basılı tutup ana ekranda istediğiniz yere sürükleyin")
-                    .setPositiveButton("Anladım", null)
-                    .show();
-            }, 500);
-        } catch (Exception e) {
-            Log.e(TAG, "Widget ayarları açılırken hata oluştu: " + e.getMessage());
-            Toast.makeText(context, "Widget ayarları açılamadı. Ana ekrana gidip manuel olarak widget ekleyebilirsiniz.", Toast.LENGTH_LONG).show();
+    private void showManualWidgetInstructions(OnWidgetAddCallback callback) {
+        if (context instanceof Activity) {
+            new MaterialAlertDialogBuilder(context)
+                .setTitle("Widget Nasıl Eklenir?")
+                .setMessage("1. Ana ekranda boş bir alana uzun basın\n" +
+                          "2. Açılan menüden 'Widgets' seçeneğine dokunun\n" +
+                          "3. Widgetlar listesinde 'Hatırlatık' widget'ını bulun\n" +
+                          "4. Widget'ı basılı tutup ana ekranda istediğiniz yere sürükleyin")
+                .setPositiveButton("Tamam", (dialog, which) -> {
+                    // Ana ekrana git
+                    Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+                    homeIntent.addCategory(Intent.CATEGORY_HOME);
+                    homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(homeIntent);
+                    callback.onManualInstructionsShown();
+                })
+                .show();
         }
+    }
+
+    public interface OnWidgetAddCallback {
+        void onSuccess();
+        void onError(String error);
+        void onManualInstructionsShown();
     }
 } 

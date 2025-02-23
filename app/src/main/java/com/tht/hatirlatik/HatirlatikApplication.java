@@ -9,6 +9,7 @@ import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.tht.hatirlatik.database.AppDatabase;
 import com.tht.hatirlatik.utils.AdHelper;
 import com.tht.hatirlatik.workers.WidgetUpdateWorker;
 
@@ -26,16 +27,25 @@ public class HatirlatikApplication extends Application implements Configuration.
         scheduleWidgetUpdate();
     }
 
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        // Veritabanı instance'ını temizle
+        AppDatabase.destroyInstance();
+        // WorkManager'ı temizle
+        WorkManager.getInstance(this).cancelAllWork();
+    }
+
     private void scheduleWidgetUpdate() {
         // Widget güncelleme işi için kısıtlamaları ayarla
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
                 .build();
 
-        // 5 dakikada bir çalışacak periyodik iş oluştur
+        // 15 dakikada bir çalışacak periyodik iş oluştur
         PeriodicWorkRequest widgetUpdateRequest = new PeriodicWorkRequest.Builder(
                 WidgetUpdateWorker.class,
-                5, TimeUnit.MINUTES)
+                15, TimeUnit.MINUTES)
                 .setConstraints(constraints)
                 .build();
 

@@ -34,6 +34,7 @@ import com.tht.hatirlatik.utils.WidgetHelper;
 import android.content.SharedPreferences;
 
 import android.os.Handler;
+import android.appwidget.AppWidgetManager;
 
 
 /**
@@ -99,16 +100,13 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             // İzin isteği için launcher'ı başlat
             setupPermissionLauncher();
             
-            // İzinleri kontrol et
-            checkPermissions();
-
             // İnternet bağlantısını kontrol et
             if (!internetHelper.isInternetAvailable()) {
                 showNoInternetDialog();
             }
 
-            // Widget önerisi kontrolü
-            checkAndShowWidgetSuggestion();
+            // İzinleri kontrol et
+            checkPermissions();
 
         } catch (Exception e) {
             Log.e(TAG, "onCreate: " + e.getMessage(), e);
@@ -194,42 +192,95 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
     }
 
     private void checkPermissions() {
-        // Android 13 (API 33) ve üzeri için bildirim izni kontrolü
+        // İzinleri sırayla kontrol et
+        checkNotificationPermission();
+    }
+
+    private void checkNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                     != PackageManager.PERMISSION_GRANTED) {
-                showPermissionExplanationDialog();
+                new MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.permission_notification_title)
+                    .setMessage(R.string.permission_notification_message)
+                    .setPositiveButton(R.string.button_grant_permission, (dialog, which) -> {
+                        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                        // Bildirim izni istendikten sonra alarm iznini kontrol et
+                        new Handler().postDelayed(this::checkAlarmPermission, 1000);
+                    })
+                    .setNegativeButton(R.string.button_cancel, (dialog, which) -> {
+                        showPermissionDeniedDialog();
+                        // İzin reddedilse bile diğer izinleri kontrol et
+                        new Handler().postDelayed(this::checkAlarmPermission, 1000);
+                    })
+                    .setCancelable(false)
+                    .show();
+            } else {
+                // Bildirim izni zaten varsa alarm iznini kontrol et
+                checkAlarmPermission();
             }
-        }
-
-        // Android 12 (API 31) ve üzeri için tam zamanlı alarm izni kontrolü
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!hasExactAlarmPermission()) {
-                showAlarmPermissionDialog();
-            }
-        }
-
-        // İnternet izni kontrolü
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET)
-                != PackageManager.PERMISSION_GRANTED) {
-            showInternetPermissionDialog();
+        } else {
+            // Android 13'ten küçük sürümlerde direkt alarm iznini kontrol et
+            checkAlarmPermission();
         }
     }
 
-    private void showPermissionExplanationDialog() {
-        new MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.permission_notification_title)
-            .setMessage(R.string.permission_notification_message)
-            .setPositiveButton(R.string.button_grant_permission, (dialog, which) -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
-                }
-            })
-            .setNegativeButton(R.string.button_cancel, (dialog, which) -> {
-                showPermissionDeniedDialog();
-            })
-            .setCancelable(false)
-            .show();
+    private void checkAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !hasExactAlarmPermission()) {
+            new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.permission_alarm_title)
+                .setMessage(R.string.permission_alarm_message)
+                .setPositiveButton(R.string.button_open_settings, (dialog, which) -> {
+                    openAlarmSettings();
+                    // Alarm ayarları açıldıktan sonra internet iznini kontrol et
+                    new Handler().postDelayed(this::checkInternetPermission, 1000);
+                })
+                .setNegativeButton(R.string.button_cancel, (dialog, which) -> {
+                    // İzin reddedilse bile internet iznini kontrol et
+                    new Handler().postDelayed(this::checkInternetPermission, 1000);
+                })
+                .show();
+        } else {
+            // Alarm izni zaten varsa internet iznini kontrol et
+            checkInternetPermission();
+        }
+    }
+
+    private void checkInternetPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET)
+                != PackageManager.PERMISSION_GRANTED) {
+            new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.permission_internet_title)
+                .setMessage(R.string.permission_internet_message)
+                .setPositiveButton(R.string.button_grant_permission, (dialog, which) -> {
+                    requestPermissionLauncher.launch(Manifest.permission.INTERNET);
+                    // İnternet izni istendikten sonra widget kontrolünü yap
+                    new Handler().postDelayed(this::checkWidgetSupport, 1000);
+                })
+                .setNegativeButton(R.string.button_cancel, (dialog, which) -> {
+                    showInternetPermissionDeniedDialog();
+                    // İzin reddedilse bile widget kontrolünü yap
+                    new Handler().postDelayed(this::checkWidgetSupport, 1000);
+                })
+                .setCancelable(false)
+                .show();
+        } else {
+            // İnternet izni zaten varsa widget kontrolünü yap
+            checkWidgetSupport();
+        }
+    }
+
+    private void checkWidgetSupport() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            AppWidgetManager appWidgetManager = getSystemService(AppWidgetManager.class);
+            if (appWidgetManager != null && !appWidgetManager.isRequestPinAppWidgetSupported()) {
+                showWidgetPermissionDialog();
+            } else {
+                showWidgetSuggestionIfNeeded();
+            }
+        } else {
+            showWidgetSuggestionIfNeeded();
+        }
     }
 
     private void showPermissionDeniedDialog() {
@@ -238,17 +289,6 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             .setMessage(R.string.permission_notification_denied_message)
             .setPositiveButton(R.string.button_open_settings, (dialog, which) -> {
                 openAppSettings();
-            })
-            .setNegativeButton(R.string.button_cancel, null)
-            .show();
-    }
-
-    private void showAlarmPermissionDialog() {
-        new MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.permission_alarm_title)
-            .setMessage(R.string.permission_alarm_message)
-            .setPositiveButton(R.string.button_open_settings, (dialog, which) -> {
-                openAlarmSettings();
             })
             .setNegativeButton(R.string.button_cancel, null)
             .show();
@@ -275,20 +315,6 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
         }
     }
 
-    private void showInternetPermissionDialog() {
-        new MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.permission_internet_title)
-            .setMessage(R.string.permission_internet_message)
-            .setPositiveButton(R.string.button_grant_permission, (dialog, which) -> {
-                requestPermissionLauncher.launch(Manifest.permission.INTERNET);
-            })
-            .setNegativeButton(R.string.button_cancel, (dialog, which) -> {
-                showInternetPermissionDeniedDialog();
-            })
-            .setCancelable(false)
-            .show();
-    }
-
     private void showInternetPermissionDeniedDialog() {
         new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.permission_internet_denied_title)
@@ -298,6 +324,69 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             })
             .setNegativeButton(R.string.button_cancel, null)
             .show();
+    }
+
+    private void showWidgetPermissionDialog() {
+        new MaterialAlertDialogBuilder(this)
+            .setTitle("Widget İzni Gerekli")
+            .setMessage("Görevlerinizi ana ekranda görüntüleyebilmek için widget ekleme iznine ihtiyacımız var. " +
+                      "Bu izni telefon ayarlarınızdan verebilirsiniz.")
+            .setPositiveButton("Ayarlara Git", (dialog, which) -> {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                intent.setData(uri);
+                startActivity(intent);
+            })
+            .setNegativeButton("İptal", null)
+            .show();
+    }
+
+    private void showWidgetSuggestionIfNeeded() {
+        SharedPreferences prefs = getSharedPreferences("app_preferences", MODE_PRIVATE);
+        boolean widgetSuggestionShown = prefs.getBoolean("widget_suggestion_shown", false);
+        
+        if (!widgetSuggestionShown) {
+            new MaterialAlertDialogBuilder(this)
+                .setTitle("Widget Eklemek İster Misiniz?")
+                .setMessage("Görevlerinizi ana ekranda görüntüleyebilmeniz için size özel bir widget sunuyoruz. " +
+                          "Bu widget sayesinde:\n\n" +
+                          "• Aktif görevlerinizi hızlıca görebilirsiniz\n" +
+                          "• Görev detaylarına tek dokunuşla ulaşabilirsiniz\n" +
+                          "• Görevlerinizin tarih ve saatlerini takip edebilirsiniz\n\n" +
+                          "Widget'ı ana ekranınıza eklemek ister misiniz?")
+                .setPositiveButton("Evet, Ekle", (dialog, which) -> {
+                    if (widgetHelper.canAddWidgets()) {
+                        widgetHelper.addWidgetToHomeScreen(new WidgetHelper.OnWidgetAddCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(MainActivity.this, 
+                                    "Widget başarıyla eklendi!", 
+                                    Toast.LENGTH_SHORT).show();
+                                prefs.edit().putBoolean("widget_suggestion_shown", true).apply();
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Toast.makeText(MainActivity.this, 
+                                    "Widget eklenirken bir hata oluştu", 
+                                    Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onManualInstructionsShown() {
+                                prefs.edit().putBoolean("widget_suggestion_shown", true).apply();
+                            }
+                        });
+                    } else {
+                        showWidgetPermissionDialog();
+                    }
+                })
+                .setNegativeButton("Hayır, Teşekkürler", (dialog, which) -> {
+                    prefs.edit().putBoolean("widget_suggestion_shown", true).apply();
+                })
+                .setNeutralButton("Daha Sonra", null)
+                .show();
+        }
     }
 
     @Override
@@ -328,33 +417,5 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
     @Override
     public boolean onSupportNavigateUp() {
         return navController != null && (navController.navigateUp() || super.onSupportNavigateUp());
-    }
-
-    private void checkAndShowWidgetSuggestion() {
-        SharedPreferences prefs = getSharedPreferences("app_preferences", MODE_PRIVATE);
-        boolean isWidgetSuggestionShown = prefs.getBoolean("widget_suggestion_shown", false);
-
-        if (!isWidgetSuggestionShown) {
-            new MaterialAlertDialogBuilder(this)
-                .setTitle("Widget Eklemek İster misiniz?")
-                .setMessage("Görevlerinizi ana ekranda görüntülemek için widget ekleyebilirsiniz. Widget eklemek ister misiniz?")
-                .setPositiveButton("Evet", (dialog, which) -> {
-                    // Widget ekleme işlemini başlat
-                    if (widgetHelper.canAddWidgets()) {
-                        widgetHelper.addWidgetToHomeScreen();
-                    } else {
-                        Toast.makeText(this, "Widget eklemek için ayarları açıyorum...", Toast.LENGTH_SHORT).show();
-                        widgetHelper.openWidgetSettings();
-                    }
-                    // Dialog gösterildi olarak işaretle
-                    prefs.edit().putBoolean("widget_suggestion_shown", true).apply();
-                })
-                .setNegativeButton("Hayır", (dialog, which) -> {
-                    // Dialog gösterildi olarak işaretle
-                    prefs.edit().putBoolean("widget_suggestion_shown", true).apply();
-                })
-                .setNeutralButton("Daha Sonra", null)
-                .show();
-        }
     }
 }

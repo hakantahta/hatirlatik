@@ -22,8 +22,19 @@ public abstract class AppDatabase extends RoomDatabase {
                     AppDatabase.class,
                     DATABASE_NAME)
                     .fallbackToDestructiveMigration()
+                    // Veritabanını uygulama verilerinin içine taşı
+                    .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
+                    // Veritabanını yedekleme ve geri yükleme işlemlerinden hariç tut
+                    .allowMainThreadQueries() // Sadece widget için gerekli
                     .build();
         }
         return instance;
+    }
+
+    public static void destroyInstance() {
+        if (instance != null && instance.isOpen()) {
+            instance.close();
+        }
+        instance = null;
     }
 } 
