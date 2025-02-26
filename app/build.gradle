@@ -58,10 +58,6 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation libs.swiperefreshlayout
 
-    // Widget Support
-    implementation 'androidx.glance:glance-appwidget:1.0.0'
-    implementation 'androidx.glance:glance-material:1.0.0'
-
     // Room components
     def room_version = "2.6.1"
     implementation "androidx.room:room-runtime:$room_version"

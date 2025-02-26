@@ -1,17 +1,12 @@
 package com.tht.hatirlatik.repository;
 
 import android.app.Application;
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
-
 import androidx.lifecycle.LiveData;
 
-import com.tht.hatirlatik.R;
 import com.tht.hatirlatik.database.AppDatabase;
 import com.tht.hatirlatik.database.TaskDao;
 import com.tht.hatirlatik.model.Task;
-import com.tht.hatirlatik.widget.TaskListWidget;
 
 import java.util.Date;
 import java.util.List;
@@ -30,20 +25,10 @@ public class TaskRepository {
         executorService = Executors.newSingleThreadExecutor();
     }
 
-    private void updateWidget() {
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(
-            new ComponentName(context, TaskListWidget.class));
-        
-        // Widget'ı güncelle
-        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_view);
-    }
-
     public void insertTask(Task task, OnTaskOperationCallback callback) {
         executorService.execute(() -> {
             try {
                 long taskId = taskDao.insert(task);
-                updateWidget(); // Widget'ı güncelle
                 callback.onSuccess(taskId);
             } catch (Exception e) {
                 callback.onError(e);
@@ -55,7 +40,6 @@ public class TaskRepository {
         executorService.execute(() -> {
             try {
                 taskDao.update(task);
-                updateWidget(); // Widget'ı güncelle
                 callback.onSuccess(task.getId());
             } catch (Exception e) {
                 callback.onError(e);
@@ -67,7 +51,6 @@ public class TaskRepository {
         executorService.execute(() -> {
             try {
                 taskDao.delete(task);
-                updateWidget(); // Widget'ı güncelle
                 callback.onSuccess(task.getId());
             } catch (Exception e) {
                 callback.onError(e);
@@ -79,7 +62,6 @@ public class TaskRepository {
         executorService.execute(() -> {
             try {
                 taskDao.deleteCompletedTasks();
-                updateWidget(); // Widget'ı güncelle
                 callback.onSuccess(-1);
             } catch (Exception e) {
                 callback.onError(e);
@@ -91,14 +73,9 @@ public class TaskRepository {
         executorService.execute(() -> {
             try {
                 taskDao.updateTaskCompletionStatus(taskId, isCompleted);
-                updateWidget(); // Widget'ı güncelle
-                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                    callback.onSuccess(taskId);
-                });
+                callback.onSuccess(taskId);
             } catch (Exception e) {
-                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                    callback.onError(e);
-                });
+                callback.onError(e);
             }
         });
     }
@@ -119,19 +96,24 @@ public class TaskRepository {
         return taskDao.getTaskById(taskId);
     }
 
-    public void getOverdueTasks(Date date, TaskCallback callback) {
+    public void getOverdueTasks(Date date, OnTasksLoadedCallback callback) {
         executorService.execute(() -> {
-            List<Task> tasks = taskDao.getOverdueTasks(date);
-            callback.onTasksLoaded(tasks);
+            try {
+                List<Task> tasks = taskDao.getOverdueTasks(date);
+                callback.onTasksLoaded(tasks);
+            } catch (Exception e) {
+                e.printStackTrace();
+                callback.onTasksLoaded(null);
+            }
         });
-    }
-
-    public interface TaskCallback {
-        void onTasksLoaded(List<Task> tasks);
     }
 
     public interface OnTaskOperationCallback {
         void onSuccess(long taskId);
         void onError(Exception e);
+    }
+
+    public interface OnTasksLoadedCallback {
+        void onTasksLoaded(List<Task> tasks);
     }
 } 

@@ -37,6 +37,14 @@ public class Task {
     @ColumnInfo(name = "updatedAt")
     private Date updatedAt;
 
+    // Boş constructor (Room için gerekli)
+    public Task() {
+        this.repeatType = RepeatType.NONE;
+        this.isCompleted = false;
+        this.createdAt = new Date();
+        this.updatedAt = new Date();
+    }
+
     public Task(String title, String description, Date dateTime, int reminderMinutes, 
                 NotificationType notificationType) {
         this.title = title;

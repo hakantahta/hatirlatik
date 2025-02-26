@@ -159,9 +159,4 @@
     <string name="checking_internet">İnternet bağlantısı kontrol ediliyor...</string>
     <string name="internet_connected">İnternet bağlantısı sağlandı</string>
     <string name="internet_not_connected">İnternet bağlantısı yok</string>
-
-    <!-- Widget -->
-    <string name="widget_description">Aktif görevlerinizi ana ekranda görüntüleyin</string>
-    <string name="widget_empty_text">Aktif görev bulunmuyor</string>
-    <string name="widget_title">Aktif Görevler</string>
 </resources>

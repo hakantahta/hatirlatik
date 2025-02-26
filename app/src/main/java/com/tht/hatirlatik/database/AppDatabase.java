@@ -16,17 +16,21 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract TaskDao taskDao();
 
     public static synchronized AppDatabase getInstance(Context context) {
-        if (instance == null) {
-            instance = Room.databaseBuilder(
-                    context.getApplicationContext(),
-                    AppDatabase.class,
-                    DATABASE_NAME)
-                    .fallbackToDestructiveMigration()
-                    // Veritabanını uygulama verilerinin içine taşı
-                    .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
-                    // Veritabanını yedekleme ve geri yükleme işlemlerinden hariç tut
-                    .allowMainThreadQueries() // Sadece widget için gerekli
-                    .build();
+        if (instance == null || !instance.isOpen()) {
+            try {
+                android.util.Log.d("AppDatabase", "Veritabanı oluşturuluyor veya yeniden açılıyor");
+                instance = Room.databaseBuilder(
+                        context.getApplicationContext(),
+                        AppDatabase.class,
+                        DATABASE_NAME)
+                        .fallbackToDestructiveMigration()
+                        .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
+                        .build();
+                android.util.Log.d("AppDatabase", "Veritabanı başarıyla oluşturuldu");
+            } catch (Exception e) {
+                android.util.Log.e("AppDatabase", "Veritabanı oluşturulurken hata: " + e.getMessage(), e);
+                throw e; // Hatayı yukarı fırlat
+            }
         }
         return instance;
     }

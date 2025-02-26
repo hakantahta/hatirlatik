@@ -37,7 +37,4 @@ public interface TaskDao {
 
     @Query("SELECT * FROM tasks WHERE dateTime < :date AND isCompleted = 0")
     List<Task> getOverdueTasks(Date date);
-
-    @Query("SELECT * FROM tasks WHERE isCompleted = 0 ORDER BY dateTime ASC")
-    List<Task> getActiveTasksForWidget();
 } 

@@ -57,22 +57,6 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-2321525102088027~3270486584"/>
 
-        <!-- Widget Tanımlaması -->
-        <receiver android:name=".widget.TaskListWidget"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/task_list_widget_info" />
-        </receiver>
-
-        <!-- Widget Servis Tanımlaması -->
-        <service android:name=".widget.TaskListWidgetService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"
-            android:exported="false" />
-
     </application>
 
 </manifest>

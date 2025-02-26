@@ -16,18 +16,12 @@
     <color name="primary_text">#212121</color>
     <color name="secondary_text">#757575</color>
 
-    <!-- Widget renkleri -->
-    <color name="widget_header_start">@color/primary</color>
-    <color name="widget_header_end">@color/primary_dark</color>
-    <color name="widget_task_indicator">@color/accent</color>
-    <color name="widget_divider">#E0E0E0</color>
-    <color name="widget_text_secondary">#757575</color>
-    <color name="widget_text">#DE000000</color>
-
     <!-- Görev durumu renkleri -->
     <color name="task_status_completed">#F44336</color>
     <color name="task_completed_background">#F5F5F5</color>
     <color name="task_active_background">#FFFFFF</color>
+    <color name="completed_task">#4CAF50</color>
+    <color name="active_task">#F44336</color>
 
     <!-- Karanlık tema renkleri -->
     <color name="dark_background">#121212</color>
