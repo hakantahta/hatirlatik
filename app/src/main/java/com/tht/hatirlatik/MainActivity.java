@@ -307,8 +307,12 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         try {
-            if (item.getItemId() == R.id.action_settings && navController != null) {
+            int itemId = item.getItemId();
+            if (itemId == R.id.action_settings && navController != null) {
                 navController.navigate(R.id.action_taskList_to_settings);
+                return true;
+            } else if (itemId == R.id.action_calendar && navController != null) {
+                navController.navigate(R.id.action_taskList_to_calendar);
                 return true;
             }
             return super.onOptionsItemSelected(item);

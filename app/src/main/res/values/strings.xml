@@ -9,11 +9,19 @@
     <string name="delete_completed_tasks">Tamamlananları Sil</string>
     <string name="settings">Ayarlar</string>
     <string name="more_options">Diğer Seçenekler</string>
+    <string name="calendar_view">Takvim Görünümü</string>
     
     <!-- Actions -->
     <string name="add_task">Görev Ekle</string>
     <string name="edit_task">Görevi Düzenle</string>
     <string name="delete_task">Görevi Sil</string>
+    
+    <!-- Calendar View -->
+    <string name="calendar">Takvim</string>
+    <string name="no_tasks_for_selected_date">Seçilen tarih için görev bulunamadı</string>
+    <string name="add_task_for_date">%s için görev ekle</string>
+    <string name="tasks_for_date">%s için görevler</string>
+    <string name="select_date">Tarih Seç</string>
     
     <!-- Task states -->
     <string name="task_completed">Görev Tamamlandı</string>

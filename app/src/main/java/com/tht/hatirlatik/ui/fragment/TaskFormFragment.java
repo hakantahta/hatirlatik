@@ -72,6 +72,9 @@ public class TaskFormFragment extends Fragment {
         
         // Observer'ları ayarla
         setupObservers();
+        
+        // Argümanları kontrol et
+        checkArguments();
     }
 
     private void initViews(View view) {
@@ -206,6 +209,23 @@ public class TaskFormFragment extends Fragment {
     private void showSnackbar(String message) {
         if (getView() != null) {
             Snackbar.make(getView(), message, Snackbar.LENGTH_LONG).show();
+        }
+    }
+
+    private void checkArguments() {
+        if (getArguments() != null) {
+            // Takvimden seçilen tarih varsa, onu kullan
+            long selectedDate = getArguments().getLong("selectedDate", -1L);
+            if (selectedDate != -1L) {
+                calendar.setTimeInMillis(selectedDate);
+                updateDateField();
+                
+                // Saat için şu anki saati kullan
+                Calendar now = Calendar.getInstance();
+                calendar.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY));
+                calendar.set(Calendar.MINUTE, now.get(Calendar.MINUTE));
+                updateTimeField();
+            }
         }
     }
 } 
