@@ -150,36 +150,62 @@ public class TaskViewModel extends AndroidViewModel {
 
     // Görev tamamlanma durumunu güncelleme
     public void updateTaskCompletionStatus(long taskId, boolean isCompleted) {
-        isLoading.setValue(true);
-        repository.updateTaskCompletionStatus(taskId, isCompleted, new TaskRepository.OnTaskOperationCallback() {
-            @Override
-            public void onSuccess(long taskId) {
-                isLoading.postValue(false);
-                // Mevcut görev listesini al
-                List<Task> currentTasks = allTasks.getValue();
-                if (currentTasks != null) {
-                    // Güncellenen görevi bul ve durumunu güncelle
-                    for (Task task : currentTasks) {
-                        if (task.getId() == taskId) {
-                            task.setCompleted(isCompleted);
-                            break;
+        isLoading.postValue(true);
+        try {
+            repository.updateTaskCompletionStatus(taskId, isCompleted, new TaskRepository.OnTaskOperationCallback() {
+                @Override
+                public void onSuccess(long taskId) {
+                    isLoading.postValue(false);
+                    // Mevcut görev listesini al
+                    List<Task> currentTasks = allTasks.getValue();
+                    if (currentTasks != null) {
+                        // Güncellenen görevi bul ve durumunu güncelle
+                        final Task updatedTask;
+                        Task foundTask = null;
+                        for (Task task : currentTasks) {
+                            if (task.getId() == taskId) {
+                                task.setCompleted(isCompleted);
+                                foundTask = task;
+                                break;
+                            }
                         }
+                        updatedTask = foundTask;
+                        
+                        // UI thread'inde filtreleme işlemini yap
+                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                            // Filtrelenmiş listeyi güncelle
+                            filterTasks(currentTasks, currentFilter.getValue());
+                            
+                            // UI'yi hemen güncelle
+                            taskListLiveData.setValue(currentTasks);
+                            
+                            // Son işlenen görev ID'sini ve durumunu kaydet
+                            if (updatedTask != null) {
+                                lastCheckedTaskId.setValue(taskId);
+                                checkboxState.setValue(isCompleted);
+                            }
+                        });
                     }
-                    
-                    // Filtrelenmiş listeyi güncelle
-                    filterTasks(currentTasks, currentFilter.getValue());
-                    
-                    // UI'yi hemen güncelle
-                    taskListLiveData.postValue(currentTasks);
                 }
-            }
 
-            @Override
-            public void onError(Exception e) {
-                isLoading.postValue(false);
-                errorMessage.postValue("Görev durumu güncellenirken bir hata oluştu: " + e.getMessage());
+                @Override
+                public void onError(Exception e) {
+                    isLoading.postValue(false);
+                    String errorMsg = "Görev durumu güncellenirken bir hata oluştu";
+                    if (e != null && e.getMessage() != null) {
+                        errorMsg += ": " + e.getMessage();
+                    }
+                    errorMessage.postValue(errorMsg);
+                }
+            });
+        } catch (Exception e) {
+            isLoading.postValue(false);
+            String errorMsg = "Görev durumu güncellenirken beklenmeyen bir hata oluştu";
+            if (e != null && e.getMessage() != null) {
+                errorMsg += ": " + e.getMessage();
             }
-        });
+            errorMessage.postValue(errorMsg);
+        }
     }
 
     // Tüm görevleri getir
@@ -266,5 +292,27 @@ public class TaskViewModel extends AndroidViewModel {
 
     public LiveData<List<Task>> getTaskListLiveData() {
         return taskListLiveData;
+    }
+    
+    public void loadTasks() {
+        isLoading.setValue(true);
+        // Repository'den güncel verileri çek
+        final LiveData<List<Task>> tasksLiveData = repository.getAllTasks();
+        final androidx.lifecycle.Observer<List<Task>> observer = new androidx.lifecycle.Observer<List<Task>>() {
+            @Override
+            public void onChanged(List<Task> tasks) {
+                if (tasks != null) {
+                    // Mevcut filtreyi al ve uygula
+                    TaskFilter currentFilterValue = currentFilter.getValue();
+                    filterTasks(tasks, currentFilterValue);
+                    // Takvim görünümünü güncelle
+                    taskListLiveData.setValue(tasks);
+                }
+                isLoading.setValue(false);
+                // Observer'ı kaldır
+                tasksLiveData.removeObserver(this);
+            }
+        };
+        tasksLiveData.observeForever(observer);
     }
 } 

@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
     private ActivityResultLauncher<String> requestPermissionLauncher;
     private InternetHelper internetHelper;
     private androidx.appcompat.app.AlertDialog noInternetDialog;
+    private FloatingActionButton fabAddTask;
+    private FloatingActionButton fabCalendar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +75,9 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
 
                 NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
-                binding.fabAddTask.setOnClickListener(view -> {
+                // Görev ekleme butonu
+                fabAddTask = binding.fabAddTask;
+                fabAddTask.setOnClickListener(view -> {
                     try {
                         if (!internetHelper.isInternetAvailable()) {
                             showNoInternetDialog();
@@ -83,6 +87,21 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
                     } catch (Exception e) {
                         Log.e(TAG, "FAB onClick: " + e.getMessage(), e);
                         Toast.makeText(this, "Görev ekleme ekranı açılırken bir hata oluştu", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                
+                // Takvim butonu
+                fabCalendar = binding.fabCalendar;
+                fabCalendar.setOnClickListener(view -> {
+                    try {
+                        if (!internetHelper.isInternetAvailable()) {
+                            showNoInternetDialog();
+                            return;
+                        }
+                        navController.navigate(R.id.action_taskList_to_customCalendar);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Calendar FAB onClick: " + e.getMessage(), e);
+                        Toast.makeText(this, "Takvim ekranı açılırken bir hata oluştu", Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
@@ -171,6 +190,36 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
         super.onResume();
         if (!internetHelper.isInternetAvailable()) {
             showNoInternetDialog();
+        }
+        
+        // Eğer ana ekrandaysak FAB'ları göster, değilse gizle
+        if (navController != null && navController.getCurrentDestination() != null) {
+            int currentDestinationId = navController.getCurrentDestination().getId();
+            if (currentDestinationId == R.id.taskListFragment) {
+                fabAddTask.show();
+                fabCalendar.show();
+            } else {
+                fabAddTask.hide();
+                fabCalendar.hide();
+            }
+        }
+    }
+
+    // NavController'daki değişiklikleri dinlemek için
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (navController != null) {
+            navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+                int destinationId = destination.getId();
+                if (destinationId == R.id.taskListFragment) {
+                    fabAddTask.show();
+                    fabCalendar.show();
+                } else {
+                    fabAddTask.hide();
+                    fabCalendar.hide();
+                }
+            });
         }
     }
 
@@ -311,8 +360,8 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             if (itemId == R.id.action_settings && navController != null) {
                 navController.navigate(R.id.action_taskList_to_settings);
                 return true;
-            } else if (itemId == R.id.action_calendar && navController != null) {
-                navController.navigate(R.id.action_taskList_to_calendar);
+            } else if (itemId == R.id.action_custom_calendar && navController != null) {
+                navController.navigate(R.id.action_taskList_to_customCalendar);
                 return true;
             }
             return super.onOptionsItemSelected(item);

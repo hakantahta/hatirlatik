@@ -22,6 +22,11 @@
     <color name="task_active_background">#FFFFFF</color>
     <color name="completed_task">#4CAF50</color>
     <color name="active_task">#F44336</color>
+    
+    <!-- Takvim görev durumu renkleri -->
+    <color name="task_green">#4CAF50</color>
+    <color name="task_red">#F44336</color>
+    <color name="task_yellow">#FFC107</color>
 
     <!-- Karanlık tema renkleri -->
     <color name="dark_background">#121212</color>
@@ -43,4 +48,10 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="colorSuccess">#4CAF50</color>
+
+    <!-- Gösterge renkleri -->
+    <color name="indicator_task_exists">#4CAF50</color>
+    <color name="indicator_task_completed">#F44336</color>
+    <color name="indicator_no_task">#FFC107</color>
+    <color name="indicator_default">#757575</color>
 </resources>

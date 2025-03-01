@@ -1,6 +1,5 @@
 package com.tht.hatirlatik.ui.fragment;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,28 +22,23 @@ import com.google.android.material.snackbar.Snackbar;
 import com.tht.hatirlatik.R;
 import com.tht.hatirlatik.model.Task;
 import com.tht.hatirlatik.ui.adapter.TaskAdapter;
-import com.tht.hatirlatik.ui.view.TaskCalendarView;
 import com.tht.hatirlatik.viewmodel.TaskViewModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class CalendarFragment extends Fragment implements TaskAdapter.TaskItemListener {
+public class AgendaCalendarFragment extends Fragment implements TaskAdapter.TaskItemListener {
 
     private TaskViewModel viewModel;
     private TaskAdapter adapter;
-    private TaskCalendarView taskCalendarView;
+    private CalendarView calendarView;
     private TextView selectedDateTextView;
     private MaterialButton addTaskButton;
     private RecyclerView tasksRecyclerView;
@@ -52,15 +46,13 @@ public class CalendarFragment extends Fragment implements TaskAdapter.TaskItemLi
     private CircularProgressIndicator progressBar;
     private Calendar selectedDate = Calendar.getInstance();
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy", new Locale("tr"));
-    private Map<String, TaskCalendarView.TaskStatus> datesWithTaskStatus = new HashMap<>();
-    private static final SimpleDateFormat dateKeyFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Executor backgroundExecutor = Executors.newSingleThreadExecutor();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_calendar, container, false);
+        return inflater.inflate(R.layout.fragment_agenda_calendar, container, false);
     }
 
     @Override
@@ -76,7 +68,7 @@ public class CalendarFragment extends Fragment implements TaskAdapter.TaskItemLi
         // Adapter'ı başlat
         setupRecyclerView();
 
-        // Takvim listener'ını ayarla
+        // CalendarView'ı ayarla
         setupCalendarView();
 
         // Görev ekleme butonunu ayarla
@@ -93,7 +85,7 @@ public class CalendarFragment extends Fragment implements TaskAdapter.TaskItemLi
     }
 
     private void initViews(View view) {
-        taskCalendarView = view.findViewById(R.id.calendar_view);
+        calendarView = view.findViewById(R.id.calendarView);
         selectedDateTextView = view.findViewById(R.id.text_selected_date);
         addTaskButton = view.findViewById(R.id.button_add_task_for_date);
         tasksRecyclerView = view.findViewById(R.id.recycler_view_tasks_for_date);
@@ -107,11 +99,22 @@ public class CalendarFragment extends Fragment implements TaskAdapter.TaskItemLi
     }
 
     private void setupCalendarView() {
-        taskCalendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            selectedDate.set(Calendar.YEAR, year);
-            selectedDate.set(Calendar.MONTH, month);
-            selectedDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        // Bugünün tarihini seç
+        calendarView.setDate(System.currentTimeMillis());
+        
+        // Tarih değişikliğini dinle
+        calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+            // Seçilen tarihi Calendar nesnesine dönüştür
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.MONTH, month);
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            selectedDate = calendar;
+            
+            // UI'ı güncelle
             updateSelectedDateUI();
+            
+            // Seçilen tarih için görevleri filtrele
             filterTasksForSelectedDate();
         });
     }
@@ -121,16 +124,16 @@ public class CalendarFragment extends Fragment implements TaskAdapter.TaskItemLi
             // Seçilen tarihi bundle ile TaskFormFragment'a gönder
             Bundle args = new Bundle();
             args.putLong("selectedDate", selectedDate.getTimeInMillis());
-            Navigation.findNavController(requireView()).navigate(R.id.action_calendarFragment_to_taskForm, args);
+            Navigation.findNavController(requireView()).navigate(R.id.action_agendaCalendarFragment_to_taskForm, args);
         });
     }
 
     private void setupObservers() {
         viewModel.getTasks().observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) {
-                // Görevlerin olduğu günleri arka planda işaretle
+                // Görevleri arka planda işle
                 backgroundExecutor.execute(() -> {
-                    markDatesWithTaskStatus(tasks);
+                    // Takvimde görevleri işaretlemek için ek işlemler yapılabilir
                     mainHandler.post(() -> {
                         filterTasksForSelectedDate();
                         progressBar.setVisibility(View.GONE);
@@ -211,7 +214,7 @@ public class CalendarFragment extends Fragment implements TaskAdapter.TaskItemLi
         // Görev detaylarına git
         Bundle args = new Bundle();
         args.putLong("taskId", task.getId());
-        Navigation.findNavController(requireView()).navigate(R.id.action_calendarFragment_to_taskDetail, args);
+        Navigation.findNavController(requireView()).navigate(R.id.action_agendaCalendarFragment_to_taskDetail, args);
     }
 
     @Override
@@ -223,57 +226,5 @@ public class CalendarFragment extends Fragment implements TaskAdapter.TaskItemLi
     public void onTaskDeleteClicked(Task task) {
         // Görev silme işlemi
         viewModel.deleteTask(task);
-    }
-
-    /**
-     * Görevlerin olduğu günleri ve durumlarını işaretler
-     * @param tasks Tüm görevler listesi
-     */
-    private void markDatesWithTaskStatus(List<Task> tasks) {
-        datesWithTaskStatus.clear();
-        
-        // Görevlerin tarihlerini ve durumlarını bir map'e ekle
-        Map<String, List<Task>> tasksByDate = new HashMap<>();
-        
-        // Önce tüm görevleri tarihlere göre grupla
-        for (Task task : tasks) {
-            if (task.getDateTime() != null) {
-                String dateKey = dateKeyFormat.format(task.getDateTime());
-                if (!tasksByDate.containsKey(dateKey)) {
-                    tasksByDate.put(dateKey, new ArrayList<>());
-                }
-                tasksByDate.get(dateKey).add(task);
-            }
-        }
-        
-        // Sonra her tarih için görev durumunu belirle
-        for (Map.Entry<String, List<Task>> entry : tasksByDate.entrySet()) {
-            String dateKey = entry.getKey();
-            List<Task> tasksForDate = entry.getValue();
-            
-            if (tasksForDate.isEmpty()) {
-                // Görev yoksa sarı nokta
-                datesWithTaskStatus.put(dateKey, TaskCalendarView.TaskStatus.NO_TASKS);
-            } else {
-                boolean allCompleted = true;
-                for (Task task : tasksForDate) {
-                    if (!task.isCompleted()) {
-                        allCompleted = false;
-                        break;
-                    }
-                }
-                
-                if (allCompleted) {
-                    // Tüm görevler tamamlandıysa kırmızı nokta
-                    datesWithTaskStatus.put(dateKey, TaskCalendarView.TaskStatus.ALL_COMPLETED);
-                } else {
-                    // Tamamlanmamış görevler varsa yeşil nokta
-                    datesWithTaskStatus.put(dateKey, TaskCalendarView.TaskStatus.HAS_TASKS);
-                }
-            }
-        }
-        
-        // TaskCalendarView'a işaretlenecek tarihleri bildir
-        mainHandler.post(() -> taskCalendarView.setMarkedDatesWithStatus(datesWithTaskStatus));
     }
 } 

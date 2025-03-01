@@ -18,10 +18,13 @@
     
     <!-- Calendar View -->
     <string name="calendar">Takvim</string>
-    <string name="no_tasks_for_selected_date">Seçilen tarih için görev bulunamadı</string>
+    <string name="agenda_calendar">Ajanda Takvim</string>
+    <string name="custom_calendar">Özel Takvim</string>
+    <string name="no_tasks_for_selected_date">Seçili tarih için görev yok</string>
     <string name="add_task_for_date">%s için görev ekle</string>
     <string name="tasks_for_date">%s için görevler</string>
     <string name="select_date">Tarih Seç</string>
+    <string name="calendar_marked_days_info">%d gün için görev bulunuyor</string>
     
     <!-- Task states -->
     <string name="task_completed">Görev Tamamlandı</string>

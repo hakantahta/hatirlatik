@@ -4,33 +4,38 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="8dp">
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_calendar"
+        android:id="@+id/card_calendar_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         app:cardCornerRadius="8dp"
         app:cardElevation="4dp"
+        app:layout_constraintHeight_percent="0.48"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.tht.hatirlatik.ui.view.TaskCalendarView
-            android:id="@+id/calendar_view"
+        <com.kizitonwose.calendarview.CalendarView
+            android:id="@+id/calendarView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="match_parent"
+            app:cv_dayViewResource="@layout/calendar_day_layout"
+            app:cv_monthHeaderResource="@layout/calendar_month_header_layout"
+            app:cv_orientation="vertical"
+            app:cv_scrollMode="paged" />
     </com.google.android.material.card.MaterialCardView>
 
     <TextView
         android:id="@+id/text_selected_date"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="16dp"
         android:textAppearance="?attr/textAppearanceHeadline6"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/button_add_task_for_date"
-        app:layout_constraintTop_toBottomOf="@+id/card_calendar"
+        app:layout_constraintTop_toBottomOf="@+id/card_calendar_view"
         tools:text="24 Şubat 2024 için görevler" />
 
     <com.google.android.material.button.MaterialButton
@@ -41,13 +46,14 @@
         android:text="@string/add_task"
         app:icon="@drawable/ic_add"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/card_calendar" />
+        app:layout_constraintTop_toTopOf="@+id/text_selected_date"
+        app:layout_constraintBottom_toBottomOf="@+id/text_selected_date" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_tasks_for_date"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:clipToPadding="false"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -119,7 +119,29 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             popup.setOnMenuItemClickListener(item -> {
                 int itemId = item.getItemId();
                 if (itemId == R.id.action_toggle_complete) {
-                    listener.onTaskCheckedChanged(task, !task.isCompleted());
+                    // Görsel geri bildirim için animasyon
+                    cardView.animate()
+                        .scaleX(0.95f)
+                        .scaleY(0.95f)
+                        .setDuration(100)
+                        .withEndAction(() -> {
+                            cardView.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(100)
+                                .start();
+                            
+                            // Durumu değiştir
+                            boolean newStatus = !task.isCompleted();
+                            task.setCompleted(newStatus); // Görevi hemen güncelle
+                            
+                            // Görsel değişikliği hemen uygula
+                            bind(task);
+                            
+                            // Veritabanını güncelle
+                            listener.onTaskCheckedChanged(task, newStatus);
+                        })
+                        .start();
                     return true;
                 } else if (itemId == R.id.action_delete) {
                     listener.onTaskDeleteClicked(task);
@@ -143,9 +165,15 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             if (task.isCompleted()) {
                 statusTextView.setText("Görev aktif değil, tamamlandı");
                 statusImageView.setImageResource(R.drawable.task_status_completed);
+                // Tamamlanmış görevler için kırmızı arka plan
+                cardView.setCardBackgroundColor(cardView.getContext().getResources().getColor(
+                    isNightMode() ? R.color.task_completed_background_dark : R.color.task_completed_background));
             } else {
                 statusTextView.setText("Görev aktif, tamamlanacak");
                 statusImageView.setImageResource(R.drawable.task_status_active);
+                // Aktif görevler için yeşil arka plan
+                cardView.setCardBackgroundColor(cardView.getContext().getResources().getColor(
+                    isNightMode() ? R.color.task_active_background_dark : R.color.task_active_background));
             }
 
             // Tarihi geçen görevler için ek bildirim göster/gizle
@@ -166,8 +194,7 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             statusImageView.setAlpha(alpha);
             overdueTextView.setAlpha(alpha);
             overdueImageView.setAlpha(alpha);
-            cardView.setAlpha(alpha);
-
+            
             // Görsel geri bildirim için animasyon
             cardView.animate()
                 .alpha(alpha)
@@ -175,25 +202,12 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
                 .scaleY(1f)
                 .setDuration(150)
                 .start();
-
-            // Kartın arka plan rengini güncelle
-            int backgroundColor;
+        }
+        
+        private boolean isNightMode() {
             int nightModeFlags = cardView.getContext().getResources().getConfiguration().uiMode & 
                     android.content.res.Configuration.UI_MODE_NIGHT_MASK;
-            boolean isNightMode = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES;
-            
-            if (isNightMode) {
-                // Karanlık tema
-                backgroundColor = task.isCompleted() ? 
-                    cardView.getContext().getResources().getColor(R.color.task_completed_background_dark) :
-                    cardView.getContext().getResources().getColor(R.color.task_active_background_dark);
-            } else {
-                // Açık tema
-                backgroundColor = task.isCompleted() ? 
-                    cardView.getContext().getResources().getColor(R.color.task_completed_background) :
-                    cardView.getContext().getResources().getColor(R.color.task_active_background);
-            }
-            cardView.setCardBackgroundColor(backgroundColor);
+            return nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES;
         }
 
         public CardView getCardView() {
