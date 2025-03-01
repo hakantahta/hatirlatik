@@ -8,8 +8,8 @@ import androidx.work.WorkerParameters;
 
 import com.tht.hatirlatik.model.NotificationType;
 import com.tht.hatirlatik.model.Task;
-import com.tht.hatirlatik.utils.AlarmHelper;
-import com.tht.hatirlatik.utils.NotificationHelper;
+import com.tht.hatirlatik.notification.AlarmHelper;
+import com.tht.hatirlatik.notification.NotificationHelper;
 
 public class TaskWorker extends Worker {
     private final Context context;

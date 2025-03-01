@@ -34,6 +34,17 @@ import android.content.SharedPreferences;
 
 import android.os.Handler;
 
+import com.tht.hatirlatik.model.NotificationType;
+import com.tht.hatirlatik.model.Task;
+import com.tht.hatirlatik.notification.TaskNotificationManager;
+import com.tht.hatirlatik.repository.TaskRepository;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Ana aktivite sınıfı.
@@ -49,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
     private androidx.appcompat.app.AlertDialog noInternetDialog;
     private FloatingActionButton fabAddTask;
     private FloatingActionButton fabCalendar;
+
+    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -360,19 +374,72 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             if (itemId == R.id.action_settings && navController != null) {
                 navController.navigate(R.id.action_taskList_to_settings);
                 return true;
-            } else if (itemId == R.id.action_custom_calendar && navController != null) {
-                navController.navigate(R.id.action_taskList_to_customCalendar);
+            } else if (itemId == R.id.action_test_notifications) {
+                testNotificationSystem();
                 return true;
             }
-            return super.onOptionsItemSelected(item);
+            return NavigationUI.onNavDestinationSelected(item, navController) || super.onOptionsItemSelected(item);
         } catch (Exception e) {
             Log.e(TAG, "onOptionsItemSelected: " + e.getMessage(), e);
-            return false;
+            return super.onOptionsItemSelected(item);
         }
     }
 
     @Override
     public boolean onSupportNavigateUp() {
         return navController != null && (navController.navigateUp() || super.onSupportNavigateUp());
+    }
+    
+    /**
+     * Bildirim sistemini test etmek için kullanılan metod.
+     * Bu metod, çoklu görev bildirimlerini test etmek için kullanılır.
+     */
+    private void testNotificationSystem() {
+        executor.execute(() -> {
+            // Test için 5 görev oluştur
+            List<Task> tasks = new ArrayList<>();
+            
+            for (int i = 1; i <= 5; i++) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.SECOND, 5); // 5 saniye sonra bildirim göster
+                
+                Task task = new Task();
+                task.setTitle("Test Görevi " + i);
+                task.setDescription("Bu bir test görevidir. #" + i);
+                task.setDateTime(calendar.getTime());
+                task.setReminderMinutes(0);
+                task.setNotificationType(NotificationType.NOTIFICATION);
+                
+                tasks.add(task);
+            }
+            
+            // Görevleri veritabanına kaydet ve bildirim planla
+            TaskRepository taskRepository = new TaskRepository(getApplication());
+            TaskNotificationManager notificationManager = new TaskNotificationManager(this);
+            
+            for (Task task : tasks) {
+                taskRepository.insertTask(task, new TaskRepository.OnTaskOperationCallback() {
+                    @Override
+                    public void onSuccess(long taskId) {
+                        task.setId(taskId);
+                        notificationManager.scheduleTaskReminder(task);
+                    }
+                    
+                    @Override
+                    public void onError(Exception e) {
+                        handler.post(() -> {
+                            Toast.makeText(MainActivity.this, "Görev oluşturulurken hata: " + e.getMessage(), 
+                                    Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
+            }
+            
+            // UI thread'de bilgi mesajı göster
+            handler.post(() -> {
+                Toast.makeText(this, "5 test görevi oluşturuldu. 5 saniye içinde bildirimler gelecek.", 
+                        Toast.LENGTH_LONG).show();
+            });
+        });
     }
 }

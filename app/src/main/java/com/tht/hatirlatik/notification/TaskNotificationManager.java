@@ -25,6 +25,11 @@ public class TaskNotificationManager {
                 System.currentTimeMillis() - 
                 (task.getReminderMinutes() * 60 * 1000);
 
+        // Eğer zaman geçmişse, hemen bildirim göster
+        if (delayMillis <= 0) {
+            delayMillis = 0;
+        }
+
         // WorkManager için input data oluştur
         Data inputData = new Data.Builder()
                 .putLong("taskId", task.getId())
@@ -33,7 +38,7 @@ public class TaskNotificationManager {
                 .putString("notificationType", task.getNotificationType().name())
                 .build();
 
-        // WorkRequest oluştur
+        // WorkRequest oluştur - her görev için benzersiz bir tag kullan
         OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(TaskWorker.class)
                 .setInputData(inputData)
                 .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
@@ -61,7 +66,7 @@ public class TaskNotificationManager {
         alarmHelper.cancelAlarm(task);
 
         // Bildirimi iptal et
-        notificationHelper.cancelNotification();
+        notificationHelper.cancelNotification(task.getId());
     }
 
     public void updateTaskReminder(Task task) {
@@ -70,5 +75,31 @@ public class TaskNotificationManager {
         
         // Yeni hatırlatıcıyı planla
         scheduleTaskReminder(task);
+    }
+    
+    public void scheduleRemindLater(Task task, int delayMinutes) {
+        // Mevcut bildirimi iptal et
+        notificationHelper.cancelNotification(task.getId());
+        
+        // Yeni hatırlatma zamanını ayarla
+        long newTime = System.currentTimeMillis() + (delayMinutes * 60 * 1000);
+        
+        // WorkManager için input data oluştur
+        Data inputData = new Data.Builder()
+                .putLong("taskId", task.getId())
+                .putString("taskTitle", task.getTitle())
+                .putString("taskDescription", task.getDescription())
+                .putString("notificationType", task.getNotificationType().name())
+                .build();
+
+        // WorkRequest oluştur - benzersiz bir tag kullan
+        OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(TaskWorker.class)
+                .setInputData(inputData)
+                .setInitialDelay(delayMinutes, TimeUnit.MINUTES)
+                .addTag("task_remind_later_" + task.getId())
+                .build();
+
+        // Work'ü planla
+        WorkManager.getInstance(context).enqueue(workRequest);
     }
 } 

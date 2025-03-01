@@ -18,6 +18,7 @@ import com.tht.hatirlatik.preferences.PreferencesManager;
 
 public class AlarmReceiver extends BroadcastReceiver {
     private MediaPlayer mediaPlayer;
+    private static final String ALARM_TAG = "Hatirlatik:AlarmWakeLock";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -27,20 +28,21 @@ public class AlarmReceiver extends BroadcastReceiver {
                 PowerManager.PARTIAL_WAKE_LOCK |
                 PowerManager.ACQUIRE_CAUSES_WAKEUP |
                 PowerManager.ON_AFTER_RELEASE,
-                "Hatirlatik:AlarmWakeLock"
+                ALARM_TAG
         );
         wakeLock.acquire(60000); // 1 dakika boyunca ekranı açık tut
 
-        // Bildirim göster
-        NotificationHelper notificationHelper = new NotificationHelper(context);
+        // Görev bilgilerini al
+        long taskId = intent.getLongExtra("taskId", -1);
         String taskTitle = intent.getStringExtra("taskTitle");
         String taskDescription = intent.getStringExtra("taskDescription");
         
         // Tercihleri kontrol et
         PreferencesManager preferencesManager = new PreferencesManager(context);
         
-        // Bildirim göster
-        notificationHelper.showTaskNotification(taskTitle, taskDescription);
+        // Bildirim göster (butonlarla birlikte)
+        NotificationHelper notificationHelper = new NotificationHelper(context);
+        notificationHelper.showTaskNotification(taskId, taskTitle, taskDescription);
 
         // Ses çal
         if (preferencesManager.isNotificationSoundEnabled()) {
@@ -94,6 +96,14 @@ public class AlarmReceiver extends BroadcastReceiver {
             } else {
                 vibrator.vibrate(pattern, -1);
             }
+        }
+    }
+    
+    // Alarm sesini durdur
+    public static void stopAlarmSound(MediaPlayer mediaPlayer) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
         }
     }
 } 

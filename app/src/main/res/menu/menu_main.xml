@@ -28,5 +28,14 @@
         app:showAsAction="always"
         android:visible="true"
         android:enabled="true" />
+    
+    <item
+        android:id="@+id/action_test_notifications"
+        android:orderInCategory="101"
+        android:title="@string/test_notifications"
+        android:icon="@drawable/ic_notification"
+        app:showAsAction="never"
+        android:visible="true"
+        android:enabled="true" />
         
 </menu> 
