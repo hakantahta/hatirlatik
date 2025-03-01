@@ -17,14 +17,15 @@ import com.tht.hatirlatik.notification.NotificationHelper;
 import com.tht.hatirlatik.preferences.PreferencesManager;
 
 public class AlarmReceiver extends BroadcastReceiver {
-    private MediaPlayer mediaPlayer;
+    private static MediaPlayer mediaPlayer;
     private static final String ALARM_TAG = "Hatirlatik:AlarmWakeLock";
+    private static PowerManager.WakeLock wakeLock;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         // Ekranı uyandır
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(
+        wakeLock = powerManager.newWakeLock(
                 PowerManager.PARTIAL_WAKE_LOCK |
                 PowerManager.ACQUIRE_CAUSES_WAKEUP |
                 PowerManager.ON_AFTER_RELEASE,
@@ -56,17 +57,18 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         // 1 dakika sonra sesi durdur
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-                mediaPlayer.release();
-                mediaPlayer = null;
+            stopAlarmSound();
+            if (wakeLock != null && wakeLock.isHeld()) {
+                wakeLock.release();
             }
-            wakeLock.release();
         }, 60000);
     }
 
     private void playAlarmSound(Context context) {
         try {
+            // Eğer zaten çalıyorsa, önce durdur
+            stopAlarmSound();
+            
             Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setDataSource(context, alarmSound);
@@ -99,11 +101,19 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
     }
     
-    // Alarm sesini durdur
-    public static void stopAlarmSound(MediaPlayer mediaPlayer) {
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
+    // Alarm sesini durdur - statik metot olarak dışarıdan erişilebilir
+    public static void stopAlarmSound() {
+        if (mediaPlayer != null) {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
             mediaPlayer.release();
+            mediaPlayer = null;
+        }
+        
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
+            wakeLock = null;
         }
     }
 } 

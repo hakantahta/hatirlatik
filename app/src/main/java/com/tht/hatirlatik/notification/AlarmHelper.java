@@ -34,9 +34,12 @@ public class AlarmHelper {
         intent.putExtra("taskTitle", task.getTitle());
         intent.putExtra("taskDescription", task.getDescription());
 
+        // Her görev için benzersiz bir request code kullan
+        int requestCode = (int) task.getId();
+        
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
-                ALARM_REQUEST_CODE,
+                requestCode,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
@@ -67,16 +70,23 @@ public class AlarmHelper {
 
     public void cancelAlarm(Task task) {
         Intent intent = new Intent(context, AlarmReceiver.class);
-        intent.putExtra("taskId", task.getId()); // Task ID'sini intent'e ekle
+        intent.putExtra("taskId", task.getId());
 
+        // Her görev için benzersiz bir request code kullan
+        int requestCode = (int) task.getId();
+        
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
-                ALARM_REQUEST_CODE,
+                requestCode,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        // Alarmı iptal et
         alarmManager.cancel(pendingIntent);
         pendingIntent.cancel();
+        
+        // Çalan alarmı durdur
+        AlarmReceiver.stopAlarmSound();
     }
 } 

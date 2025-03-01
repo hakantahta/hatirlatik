@@ -12,6 +12,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 
 import com.tht.hatirlatik.model.Task;
+import com.tht.hatirlatik.notification.AlarmHelper;
 import com.tht.hatirlatik.notification.NotificationHelper;
 import com.tht.hatirlatik.notification.TaskNotificationManager;
 import com.tht.hatirlatik.repository.TaskRepository;
@@ -43,14 +44,15 @@ public class NotificationActionReceiver extends BroadcastReceiver {
         
         TaskRepository taskRepository = new TaskRepository((Application) context.getApplicationContext());
         NotificationHelper notificationHelper = new NotificationHelper(context);
+        AlarmHelper alarmHelper = new AlarmHelper(context);
         
         switch (action) {
             case ACTION_COMPLETE_TASK:
-                handleCompleteTask(context, taskRepository, notificationHelper, taskId);
+                handleCompleteTask(context, taskRepository, notificationHelper, alarmHelper, taskId);
                 break;
                 
             case ACTION_REMIND_LATER:
-                handleRemindLater(context, taskRepository, taskId, 
+                handleRemindLater(context, taskRepository, alarmHelper, taskId, 
                         intent.getStringExtra("taskTitle"), 
                         intent.getStringExtra("taskDescription"));
                 break;
@@ -58,7 +60,7 @@ public class NotificationActionReceiver extends BroadcastReceiver {
     }
     
     private void handleCompleteTask(Context context, TaskRepository taskRepository, 
-                                   NotificationHelper notificationHelper, long taskId) {
+                                   NotificationHelper notificationHelper, AlarmHelper alarmHelper, long taskId) {
         executor.execute(() -> {
             // Görevi veritabanından al
             LiveData<Task> taskLiveData = taskRepository.getTaskById(taskId);
@@ -68,6 +70,9 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                 @Override
                 public void onChanged(Task task) {
                     if (task != null) {
+                        // Alarmı durdur
+                        alarmHelper.cancelAlarm(task);
+                        
                         // Görevi tamamlandı olarak işaretle
                         task.setCompleted(true);
                         taskRepository.updateTask(task, new TaskRepository.OnTaskOperationCallback() {
@@ -109,7 +114,7 @@ public class NotificationActionReceiver extends BroadcastReceiver {
     }
     
     private void handleRemindLater(Context context, TaskRepository taskRepository, 
-                                  long taskId, String taskTitle, String taskDescription) {
+                                  AlarmHelper alarmHelper, long taskId, String taskTitle, String taskDescription) {
         executor.execute(() -> {
             // Görevi veritabanından al
             LiveData<Task> taskLiveData = taskRepository.getTaskById(taskId);
@@ -121,6 +126,9 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                     if (task != null) {
                         // Mevcut bildirimi kapat
                         new NotificationHelper(context).cancelNotification(taskId);
+                        
+                        // Mevcut alarmı durdur
+                        alarmHelper.cancelAlarm(task);
                         
                         // 10 dakika sonrası için yeni bir zaman ayarla
                         Calendar calendar = Calendar.getInstance();

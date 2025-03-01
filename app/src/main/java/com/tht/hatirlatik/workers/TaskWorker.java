@@ -28,7 +28,16 @@ public class TaskWorker extends Worker {
             String taskDescription = getInputData().getString("taskDescription");
             long taskId = getInputData().getLong("taskId", -1);
             String notificationTypeStr = getInputData().getString("notificationType");
-            NotificationType notificationType = NotificationType.valueOf(notificationTypeStr);
+            
+            // NotificationType null ise varsayılan olarak NOTIFICATION kullan
+            NotificationType notificationType = NotificationType.NOTIFICATION;
+            if (notificationTypeStr != null && !notificationTypeStr.isEmpty()) {
+                try {
+                    notificationType = NotificationType.valueOf(notificationTypeStr);
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                }
+            }
 
             if (taskId != -1) {
                 Task task = new Task(taskTitle, taskDescription, null, 0, notificationType);
@@ -40,11 +49,19 @@ public class TaskWorker extends Worker {
                         new NotificationHelper(context).showTaskNotification(task);
                         break;
                     case ALARM:
-                        new AlarmHelper(context).scheduleAlarm(task);
+                        // Önce mevcut alarmı iptal et (eğer varsa)
+                        AlarmHelper alarmHelper = new AlarmHelper(context);
+                        alarmHelper.cancelAlarm(task);
+                        // Yeni alarmı planla
+                        alarmHelper.scheduleAlarm(task);
                         break;
                     case NOTIFICATION_AND_ALARM:
+                        // Önce mevcut alarmı iptal et (eğer varsa)
+                        AlarmHelper alarmHelper2 = new AlarmHelper(context);
+                        alarmHelper2.cancelAlarm(task);
+                        // Bildirim göster ve yeni alarmı planla
                         new NotificationHelper(context).showTaskNotification(task);
-                        new AlarmHelper(context).scheduleAlarm(task);
+                        alarmHelper2.scheduleAlarm(task);
                         break;
                 }
                 return Result.success();
