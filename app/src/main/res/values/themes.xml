@@ -75,6 +75,9 @@
         <item name="titleTextAppearance">@style/TextAppearance.Hatirlatik.Toolbar.Title</item>
         <item name="android:elevation">0dp</item>
         <item name="android:background">@color/primary</item>
+        <item name="actionMenuTextColor">@color/white</item>
+        <item name="iconTint">@color/white</item>
+        <item name="colorControlNormal">@color/white</item>
     </style>
 
     <style name="TextAppearance.Hatirlatik.Toolbar.Title" parent="TextAppearance.MaterialComponents.Headline6">

@@ -21,7 +21,8 @@
                 app:popupTheme="@style/ThemeOverlay.Hatirlatik.Popup"
                 app:title="@string/app_name"
                 app:titleTextColor="@color/white"
-                app:menu="@menu/menu_main" />
+                app:menu="@menu/menu_main"
+                app:iconTint="@color/task_active_background" />
 
         </com.google.android.material.appbar.AppBarLayout>
 

@@ -32,27 +32,27 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="12dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Bugünkü Görevler"
-                        android:textAppearance="?attr/textAppearanceHeadline6"
+                        android:textAppearance="?attr/textAppearanceSubtitle1"
                         android:textColor="@color/primary"/>
 
                     <com.google.android.material.progressindicator.LinearProgressIndicator
                         android:id="@+id/progress_today_tasks"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        app:trackCornerRadius="8dp"
-                        app:trackThickness="8dp"/>
+                        android:layout_marginTop="6dp"
+                        app:trackCornerRadius="6dp"
+                        app:trackThickness="6dp"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="10dp"
                         android:orientation="horizontal">
 
                         <LinearLayout
@@ -65,23 +65,23 @@
                                 android:id="@+id/text_total_today_tasks"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="?attr/textAppearanceBody1"
+                                android:textAppearance="?attr/textAppearanceCaption"
                                 tools:text="Toplam: 5"/>
 
                             <TextView
                                 android:id="@+id/text_completed_today_tasks"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textAppearance="?attr/textAppearanceBody1"
+                                android:layout_marginTop="2dp"
+                                android:textAppearance="?attr/textAppearanceCaption"
                                 tools:text="Tamamlanan: 3"/>
 
                             <TextView
                                 android:id="@+id/text_remaining_today_tasks"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textAppearance="?attr/textAppearanceBody1"
+                                android:layout_marginTop="2dp"
+                                android:textAppearance="?attr/textAppearanceCaption"
                                 tools:text="Kalan: 2"/>
 
                         </LinearLayout>
@@ -96,15 +96,15 @@
                                 android:id="@+id/text_upcoming_tasks"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="?attr/textAppearanceBody1"
+                                android:textAppearance="?attr/textAppearanceCaption"
                                 tools:text="Yaklaşan: 8"/>
 
                             <TextView
                                 android:id="@+id/text_overdue_tasks"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textAppearance="?attr/textAppearanceBody1"
+                                android:layout_marginTop="2dp"
+                                android:textAppearance="?attr/textAppearanceCaption"
                                 android:textColor="@color/error"
                                 tools:text="Gecikmiş: 1"/>
 

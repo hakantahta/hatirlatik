@@ -71,13 +71,12 @@
             android:id="@+id/chip_task_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceCaption"
             app:chipBackgroundColor="#F5F5F5"
             app:chipIconTint="@color/task_status_completed"
-            app:layout_constraintBottom_toBottomOf="@+id/chip_task_datetime"
-            app:layout_constraintStart_toEndOf="@+id/chip_task_datetime"
-            app:layout_constraintTop_toTopOf="@+id/chip_task_datetime"
+            app:layout_constraintStart_toStartOf="@+id/chip_task_datetime"
+            app:layout_constraintTop_toBottomOf="@+id/chip_task_datetime"
             tools:text="Aktif" />
 
         <TextView
@@ -88,8 +87,8 @@
             android:textAppearance="?attr/textAppearanceCaption"
             android:textColor="@color/overdue_task"
             android:visibility="gone"
-            app:layout_constraintStart_toStartOf="@+id/chip_task_datetime"
-            app:layout_constraintTop_toBottomOf="@+id/chip_task_datetime"
+            app:layout_constraintStart_toStartOf="@+id/chip_task_status"
+            app:layout_constraintTop_toBottomOf="@+id/chip_task_status"
             android:text="Görev saati geçti!"
             app:drawableStartCompat="@drawable/ic_warning"
             android:drawablePadding="4dp" />

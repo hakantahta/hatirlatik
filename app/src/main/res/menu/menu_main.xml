@@ -9,7 +9,8 @@
         android:icon="@drawable/ic_calendar"
         app:showAsAction="always"
         android:visible="true"
-        android:enabled="true" />
+        android:enabled="true"
+        app:iconTint="@color/task_active_background" />
     
     <item
         android:id="@+id/action_filter"
@@ -18,7 +19,8 @@
         android:icon="@drawable/ic_filter"
         app:showAsAction="always"
         android:visible="true"
-        android:enabled="true" />
+        android:enabled="true"
+        app:iconTint="@color/task_active_background" />
 
     <item
         android:id="@+id/action_settings"
@@ -27,7 +29,8 @@
         android:icon="@drawable/ic_settings"
         app:showAsAction="always"
         android:visible="true"
-        android:enabled="true" />
+        android:enabled="true"
+        app:iconTint="@color/task_active_background" />
     
     <item
         android:id="@+id/action_test_notifications"
