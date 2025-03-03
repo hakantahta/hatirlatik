@@ -45,6 +45,13 @@
     <string name="notification_channel_name">Görev Bildirimleri</string>
     <string name="notification_channel_description">Görev hatırlatmaları için bildirimler</string>
     
+    <!-- Widget -->
+    <string name="widget_name">Hatırlatık Görevler</string>
+    <string name="widget_description">Günlük görevlerinizi görüntüleyin ve yönetin</string>
+    <string name="no_tasks_today">Bugün için görev yok</string>
+    <string name="widget_loading">Görevler yükleniyor...</string>
+    <string name="widget_configure">Widget\'ı Yapılandır</string>
+    
     <!-- Error messages -->
     <string name="error_task_not_found">Görev bulunamadı</string>
     <string name="error_saving_task">Görev kaydedilirken hata oluştu</string>
@@ -181,4 +188,6 @@
     <string name="checking_internet">İnternet bağlantısı kontrol ediliyor...</string>
     <string name="internet_connected">İnternet bağlantısı sağlandı</string>
     <string name="internet_not_connected">İnternet bağlantısı yok</string>
+
+    <string name="task_completion_status">Görev tamamlanma durumu</string>
 </resources>

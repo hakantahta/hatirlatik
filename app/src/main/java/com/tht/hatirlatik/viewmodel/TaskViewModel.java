@@ -83,6 +83,8 @@ public class TaskViewModel extends AndroidViewModel {
                 task.setId(taskId);
                 // Görevi ekledikten sonra hatırlatıcıyı planla
                 notificationManager.scheduleTaskReminder(task);
+                // Widget'ı güncelle
+                updateWidgets();
             }
 
             @Override
@@ -100,8 +102,11 @@ public class TaskViewModel extends AndroidViewModel {
             @Override
             public void onSuccess(long taskId) {
                 isLoading.postValue(false);
-                // Görevi güncelledikten sonra hatırlatıcıyı güncelle
-                notificationManager.updateTaskReminder(task);
+                // Görevi güncelledikten sonra hatırlatıcıyı yeniden planla
+                notificationManager.cancelTaskReminder(task);
+                notificationManager.scheduleTaskReminder(task);
+                // Widget'ı güncelle
+                updateWidgets();
             }
 
             @Override
@@ -121,6 +126,8 @@ public class TaskViewModel extends AndroidViewModel {
                 isLoading.postValue(false);
                 // Görevi sildikten sonra hatırlatıcıyı iptal et
                 notificationManager.cancelTaskReminder(task);
+                // Widget'ı güncelle
+                updateWidgets();
             }
 
             @Override
@@ -131,81 +138,59 @@ public class TaskViewModel extends AndroidViewModel {
         });
     }
 
-    // Tamamlanmış görevleri silme
+    // Tamamlanan görevleri silme
     public void deleteCompletedTasks() {
         isLoading.setValue(true);
         repository.deleteCompletedTasks(new TaskRepository.OnTaskOperationCallback() {
             @Override
             public void onSuccess(long taskId) {
                 isLoading.postValue(false);
+                // Widget'ı güncelle
+                updateWidgets();
             }
 
             @Override
             public void onError(Exception e) {
                 isLoading.postValue(false);
-                errorMessage.postValue("Tamamlanmış görevler silinirken bir hata oluştu: " + e.getMessage());
+                errorMessage.postValue("Tamamlanan görevler silinirken bir hata oluştu: " + e.getMessage());
             }
         });
     }
 
-    // Görev tamamlanma durumunu güncelleme
+    // Görev durumunu güncelleme
     public void updateTaskCompletionStatus(long taskId, boolean isCompleted) {
-        isLoading.postValue(true);
-        try {
-            repository.updateTaskCompletionStatus(taskId, isCompleted, new TaskRepository.OnTaskOperationCallback() {
-                @Override
-                public void onSuccess(long taskId) {
-                    isLoading.postValue(false);
-                    // Mevcut görev listesini al
-                    List<Task> currentTasks = allTasks.getValue();
-                    if (currentTasks != null) {
-                        // Güncellenen görevi bul ve durumunu güncelle
-                        final Task updatedTask;
-                        Task foundTask = null;
-                        for (Task task : currentTasks) {
-                            if (task.getId() == taskId) {
-                                task.setCompleted(isCompleted);
-                                foundTask = task;
-                                break;
-                            }
-                        }
-                        updatedTask = foundTask;
-                        
-                        // UI thread'inde filtreleme işlemini yap
-                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                            // Filtrelenmiş listeyi güncelle
-                            filterTasks(currentTasks, currentFilter.getValue());
-                            
-                            // UI'yi hemen güncelle
-                            taskListLiveData.setValue(currentTasks);
-                            
-                            // Son işlenen görev ID'sini ve durumunu kaydet
-                            if (updatedTask != null) {
-                                lastCheckedTaskId.setValue(taskId);
-                                checkboxState.setValue(isCompleted);
-                            }
-                        });
+        isLoading.setValue(true);
+        repository.updateTaskCompletionStatus(taskId, isCompleted, new TaskRepository.OnTaskOperationCallback() {
+            @Override
+            public void onSuccess(long taskId) {
+                isLoading.postValue(false);
+                // Görev durumu değiştiğinde hatırlatıcıyı güncelle
+                if (isCompleted) {
+                    // Görevi ID'ye göre al ve bildirimini iptal et
+                    Task task = repository.getTaskByIdSync(taskId);
+                    if (task != null) {
+                        notificationManager.cancelTaskReminder(task);
+                    }
+                } else {
+                    // Görevi ID'ye göre al ve bildirimini planla
+                    Task task = repository.getTaskByIdSync(taskId);
+                    if (task != null) {
+                        notificationManager.scheduleTaskReminder(task);
                     }
                 }
-
-                @Override
-                public void onError(Exception e) {
-                    isLoading.postValue(false);
-                    String errorMsg = "Görev durumu güncellenirken bir hata oluştu";
-                    if (e != null && e.getMessage() != null) {
-                        errorMsg += ": " + e.getMessage();
-                    }
-                    errorMessage.postValue(errorMsg);
-                }
-            });
-        } catch (Exception e) {
-            isLoading.postValue(false);
-            String errorMsg = "Görev durumu güncellenirken beklenmeyen bir hata oluştu";
-            if (e != null && e.getMessage() != null) {
-                errorMsg += ": " + e.getMessage();
+                // Son işaretlenen görev ID'sini güncelle
+                lastCheckedTaskId.postValue(taskId);
+                checkboxState.postValue(isCompleted);
+                // Widget'ı güncelle
+                updateWidgets();
             }
-            errorMessage.postValue(errorMsg);
-        }
+
+            @Override
+            public void onError(Exception e) {
+                isLoading.postValue(false);
+                errorMessage.postValue("Görev durumu güncellenirken bir hata oluştu: " + e.getMessage());
+            }
+        });
     }
 
     // Tüm görevleri getir
@@ -314,5 +299,19 @@ public class TaskViewModel extends AndroidViewModel {
             }
         };
         tasksLiveData.observeForever(observer);
+    }
+
+    // Widget'ı güncelleme
+    private void updateWidgets() {
+        try {
+            // MainActivity'den widget güncelleme metodunu çağır
+            if (getApplication() instanceof com.tht.hatirlatik.HatirlatikApplication) {
+                com.tht.hatirlatik.HatirlatikApplication app = 
+                    (com.tht.hatirlatik.HatirlatikApplication) getApplication();
+                app.updateWidgets();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 } 

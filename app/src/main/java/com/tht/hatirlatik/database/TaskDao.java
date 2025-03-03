@@ -26,8 +26,14 @@ public interface TaskDao {
     @Query("SELECT * FROM tasks WHERE dateTime BETWEEN :startDate AND :endDate")
     LiveData<List<Task>> getTasksBetweenDates(Date startDate, Date endDate);
 
+    @Query("SELECT * FROM tasks WHERE dateTime BETWEEN :startDate AND :endDate ORDER BY dateTime ASC")
+    List<Task> getTasksBetweenDatesSync(Date startDate, Date endDate);
+
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     LiveData<Task> getTaskById(long taskId);
+
+    @Query("SELECT * FROM tasks WHERE id = :taskId")
+    Task getTaskByIdSync(long taskId);
 
     @Query("UPDATE tasks SET isCompleted = :isCompleted WHERE id = :taskId")
     void updateTaskCompletionStatus(long taskId, boolean isCompleted);

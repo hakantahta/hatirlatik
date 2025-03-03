@@ -1,6 +1,7 @@
 package com.tht.hatirlatik;
 
 import android.app.Application;
+import android.content.Intent;
 
 import androidx.work.Configuration;
 import androidx.work.Constraints;
@@ -11,6 +12,7 @@ import androidx.work.WorkManager;
 
 import com.tht.hatirlatik.database.AppDatabase;
 import com.tht.hatirlatik.utils.AdHelper;
+import com.tht.hatirlatik.widget.TaskWidgetProvider;
 
 import java.util.concurrent.TimeUnit;
 
@@ -38,5 +40,14 @@ public class HatirlatikApplication extends Application implements Configuration.
         return new Configuration.Builder()
                 .setMinimumLoggingLevel(android.util.Log.INFO)
                 .build();
+    }
+    
+    /**
+     * Widget'ları günceller
+     */
+    public void updateWidgets() {
+        Intent intent = new Intent(this, TaskWidgetProvider.class);
+        intent.setAction(TaskWidgetProvider.ACTION_DATA_UPDATED);
+        sendBroadcast(intent);
     }
 } 

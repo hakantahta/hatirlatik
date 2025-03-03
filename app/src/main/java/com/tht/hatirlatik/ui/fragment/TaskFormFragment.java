@@ -212,6 +212,9 @@ public class TaskFormFragment extends Fragment {
         Task task = new Task(title, description, dateTime, reminderMinutes, notificationType);
         viewModel.insertTask(task);
         
+        // Widget'ı yenile
+        com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(requireContext());
+        
         // Ana listeye geri dön
         Navigation.findNavController(requireView()).navigateUp();
     }

@@ -1,6 +1,7 @@
 package com.tht.hatirlatik.database;
 
 import android.content.Context;
+import android.util.Log;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
@@ -12,24 +13,26 @@ import com.tht.hatirlatik.model.Task;
 public abstract class AppDatabase extends RoomDatabase {
     private static final String DATABASE_NAME = "hatirlatik_db";
     private static volatile AppDatabase instance;
+    private static final String TAG = "AppDatabase";
 
     public abstract TaskDao taskDao();
 
     public static synchronized AppDatabase getInstance(Context context) {
         if (instance == null || !instance.isOpen()) {
             try {
-                android.util.Log.d("AppDatabase", "Veritabanı oluşturuluyor veya yeniden açılıyor");
+                Log.d(TAG, "Veritabanı oluşturuluyor veya yeniden açılıyor");
                 instance = Room.databaseBuilder(
                         context.getApplicationContext(),
                         AppDatabase.class,
                         DATABASE_NAME)
                         .fallbackToDestructiveMigration()
+                        .allowMainThreadQueries() // Widget için gerekli
                         .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
                         .build();
-                android.util.Log.d("AppDatabase", "Veritabanı başarıyla oluşturuldu");
+                Log.d(TAG, "Veritabanı başarıyla oluşturuldu");
             } catch (Exception e) {
-                android.util.Log.e("AppDatabase", "Veritabanı oluşturulurken hata: " + e.getMessage(), e);
-                throw e; // Hatayı yukarı fırlat
+                Log.e(TAG, "Veritabanı oluşturulurken hata: " + e.getMessage(), e);
+                return null; // Hata durumunda null döndür
             }
         }
         return instance;

@@ -34,6 +34,7 @@ import com.tht.hatirlatik.model.NotificationType;
 import com.tht.hatirlatik.model.Task;
 import com.tht.hatirlatik.notification.TaskNotificationManager;
 import com.tht.hatirlatik.repository.TaskRepository;
+import com.tht.hatirlatik.widget.TaskWidgetProvider;
 
 import android.content.SharedPreferences;
 import android.os.Handler;
@@ -51,6 +52,8 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity implements InternetHelper.InternetConnectionListener {
 
     private static final String TAG = "MainActivity";
+    public static final String EXTRA_OPEN_TASK_DETAIL = "com.tht.hatirlatik.EXTRA_OPEN_TASK_DETAIL";
+    public static final String EXTRA_TASK_ID = "com.tht.hatirlatik.EXTRA_TASK_ID";
     private ActivityMainBinding binding;
     private NavController navController;
     private ActivityResultLauncher<String> requestPermissionLauncher;
@@ -133,10 +136,35 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             // İzinleri kontrol et
             checkPermissions();
 
+            // Widget'tan gelen intent'i işle
+            handleIntent(getIntent());
+
         } catch (Exception e) {
             Log.e(TAG, "onCreate: " + e.getMessage(), e);
             Toast.makeText(this, "Uygulama başlatılırken bir hata oluştu", Toast.LENGTH_LONG).show();
             finish();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent != null) {
+            // Widget'tan görev detayını açma isteği
+            if (intent.getBooleanExtra(EXTRA_OPEN_TASK_DETAIL, false)) {
+                long taskId = intent.getLongExtra(EXTRA_TASK_ID, -1);
+                if (taskId != -1) {
+                    // Görev detay sayfasına git
+                    Bundle args = new Bundle();
+                    args.putLong("taskId", taskId);
+                    navController.navigate(R.id.action_taskList_to_taskDetail, args);
+                }
+            }
         }
     }
 
@@ -477,5 +505,14 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
                         Toast.LENGTH_LONG).show();
             });
         });
+    }
+
+    /**
+     * Görev eklendiğinde, güncellendiğinde veya silindiğinde widget'ı günceller
+     */
+    public void updateWidgets() {
+        Intent intent = new Intent(this, TaskWidgetProvider.class);
+        intent.setAction(TaskWidgetProvider.ACTION_DATA_UPDATED);
+        sendBroadcast(intent);
     }
 }

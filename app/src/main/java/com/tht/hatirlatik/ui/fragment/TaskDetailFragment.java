@@ -175,6 +175,8 @@ public class TaskDetailFragment extends Fragment {
     private void onCheckBoxClicked() {
         if (currentTask != null) {
             viewModel.updateTaskCompletionStatus(currentTask.getId(), binding.checkboxTask.isChecked());
+            // Widget'ı yenile
+            com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(requireContext());
         }
     }
 
@@ -208,6 +210,8 @@ public class TaskDetailFragment extends Fragment {
                 .setPositiveButton(R.string.dialog_yes, (dialog, which) -> {
                     if (currentTask != null) {
                         viewModel.deleteTask(currentTask);
+                        // Widget'ı yenile
+                        com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(requireContext());
                         Navigation.findNavController(requireView()).navigateUp();
                     }
                 })

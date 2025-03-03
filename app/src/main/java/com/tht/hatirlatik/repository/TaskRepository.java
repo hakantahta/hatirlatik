@@ -96,6 +96,10 @@ public class TaskRepository {
         return taskDao.getTaskById(taskId);
     }
 
+    public Task getTaskByIdSync(long taskId) {
+        return taskDao.getTaskByIdSync(taskId);
+    }
+
     public void getOverdueTasks(Date date, OnTasksLoadedCallback callback) {
         executorService.execute(() -> {
             try {
