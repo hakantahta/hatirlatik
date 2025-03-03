@@ -106,19 +106,61 @@ public class TaskFormFragment extends Fragment {
     }
 
     private void showDatePicker() {
-        new DatePickerDialog(requireContext(), (view, year, month, dayOfMonth) -> {
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.MONTH, month);
-            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(), (view, year, month, dayOfMonth) -> {
+            Calendar selectedCalendar = Calendar.getInstance();
+            selectedCalendar.set(Calendar.YEAR, year);
+            selectedCalendar.set(Calendar.MONTH, month);
+            selectedCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            
+            // Seçilen tarih bugünden önceyse, bugünün tarihini kullan
+            if (selectedCalendar.getTime().before(Calendar.getInstance().getTime())) {
+                showSnackbar(getString(R.string.error_past_date));
+                // Bugünün tarihini ayarla
+                Calendar today = Calendar.getInstance();
+                calendar.set(Calendar.YEAR, today.get(Calendar.YEAR));
+                calendar.set(Calendar.MONTH, today.get(Calendar.MONTH));
+                calendar.set(Calendar.DAY_OF_MONTH, today.get(Calendar.DAY_OF_MONTH));
+            } else {
+                // Geçerli bir tarih seçildi
+                calendar.set(Calendar.YEAR, year);
+                calendar.set(Calendar.MONTH, month);
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            }
             updateDateField();
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)).show();
+                calendar.get(Calendar.DAY_OF_MONTH));
+        
+        // Minimum tarih olarak bugünü ayarla
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        datePickerDialog.show();
     }
 
     private void showTimePicker() {
         new TimePickerDialog(requireContext(), (view, hourOfDay, minute) -> {
-            calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
-            calendar.set(Calendar.MINUTE, minute);
+            Calendar selectedTime = Calendar.getInstance();
+            selectedTime.set(Calendar.YEAR, calendar.get(Calendar.YEAR));
+            selectedTime.set(Calendar.MONTH, calendar.get(Calendar.MONTH));
+            selectedTime.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH));
+            selectedTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            selectedTime.set(Calendar.MINUTE, minute);
+            
+            // Eğer seçilen tarih bugünse ve seçilen saat şu andan önceyse
+            Calendar now = Calendar.getInstance();
+            if (calendar.get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
+                calendar.get(Calendar.MONTH) == now.get(Calendar.MONTH) &&
+                calendar.get(Calendar.DAY_OF_MONTH) == now.get(Calendar.DAY_OF_MONTH) &&
+                selectedTime.getTime().before(now.getTime())) {
+                
+                showSnackbar(getString(R.string.error_past_time));
+                // Şu anki saatten 1 saat sonrasını ayarla
+                now.add(Calendar.HOUR_OF_DAY, 1);
+                calendar.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY));
+                calendar.set(Calendar.MINUTE, 0);
+            } else {
+                // Geçerli bir saat seçildi
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                calendar.set(Calendar.MINUTE, minute);
+            }
             updateTimeField();
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show();
     }
@@ -197,9 +239,17 @@ public class TaskFormFragment extends Fragment {
             isValid = false;
         }
 
-        // Geçmiş tarih kontrolü
-        if (calendar.getTime().before(new Date())) {
-            showSnackbar(getString(R.string.error_past_date));
+        // Geçmiş tarih ve saat kontrolü
+        Calendar now = Calendar.getInstance();
+        if (calendar.getTime().before(now.getTime())) {
+            // Eğer seçilen tarih bugünse, sadece saat geçmişte olabilir
+            if (calendar.get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
+                calendar.get(Calendar.MONTH) == now.get(Calendar.MONTH) &&
+                calendar.get(Calendar.DAY_OF_MONTH) == now.get(Calendar.DAY_OF_MONTH)) {
+                showSnackbar(getString(R.string.error_past_time));
+            } else {
+                showSnackbar(getString(R.string.error_past_date));
+            }
             isValid = false;
         }
 

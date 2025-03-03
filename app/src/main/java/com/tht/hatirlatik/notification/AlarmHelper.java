@@ -21,8 +21,8 @@ public class AlarmHelper {
 
     public void scheduleAlarm(Task task) {
         // Alarm zamanını hesapla (görev zamanından hatırlatma süresini çıkar)
-        long alarmTime = task.getDateTime().getTime() - 
-                        (task.getReminderMinutes() * 60 * 1000);
+        long taskTime = task.getDateTime().getTime();
+        long alarmTime = taskTime - (task.getReminderMinutes() * 60 * 1000L);
 
         // Eğer alarm zamanı geçmişse, alarm kurma
         if (alarmTime <= System.currentTimeMillis()) {
@@ -45,46 +45,39 @@ public class AlarmHelper {
         );
 
         // Android sürümüne göre uygun alarm tipini seç
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setExactAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        alarmTime,
-                        pendingIntent
-                );
-            } else {
-                alarmManager.setAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        alarmTime,
-                        pendingIntent
-                );
-            }
-        } else {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && 
+            !alarmManager.canScheduleExactAlarms()) {
+            // Android 12 ve üzeri için exact alarm izni yoksa
+            alarmManager.setAlarmClock(
+                new AlarmManager.AlarmClockInfo(alarmTime, pendingIntent),
+                pendingIntent
+            );
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android 6 ve üzeri için
             alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    alarmTime,
-                    pendingIntent
+                AlarmManager.RTC_WAKEUP,
+                alarmTime,
+                pendingIntent
+            );
+        } else {
+            // Android 6 öncesi için
+            alarmManager.setExact(
+                AlarmManager.RTC_WAKEUP,
+                alarmTime,
+                pendingIntent
             );
         }
     }
 
     public void cancelAlarm(Task task) {
         Intent intent = new Intent(context, AlarmReceiver.class);
-        intent.putExtra("taskId", task.getId());
-
-        // Her görev için benzersiz bir request code kullan
-        int requestCode = (int) task.getId();
-        
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
-                requestCode,
+                (int) task.getId(),
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
-
-        // Alarmı iptal et
         alarmManager.cancel(pendingIntent);
-        pendingIntent.cancel();
         
         // Çalan alarmı durdur
         AlarmReceiver.stopAlarmSound();

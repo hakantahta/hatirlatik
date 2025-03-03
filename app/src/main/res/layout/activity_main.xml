@@ -8,17 +8,19 @@
 
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:background="@color/primary">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                android:elevation="4dp"
+                android:background="@color/primary"
+                android:elevation="0dp"
                 android:theme="@style/ThemeOverlay.Material3.ActionBar"
                 app:popupTheme="@style/ThemeOverlay.Hatirlatik.Popup"
                 app:title="@string/app_name"
+                app:titleTextColor="@color/white"
                 app:menu="@menu/menu_main" />
 
         </com.google.android.material.appbar.AppBarLayout>
@@ -32,7 +34,7 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             app:navGraph="@navigation/nav_graph" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
             android:id="@+id/fab_calendar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -40,17 +42,22 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="88dp"
             android:contentDescription="@string/calendar_view"
-            app:fabSize="mini"
-            app:srcCompat="@drawable/ic_calendar" />
+            android:text="@string/calendar_view"
+            app:icon="@drawable/ic_calendar"
+            app:iconTint="@color/white"
+            app:backgroundTint="@color/tertiary" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
             android:id="@+id/fab_add_task"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="16dp"
             android:contentDescription="@string/add_task"
-            app:srcCompat="@drawable/ic_add" />
+            android:text="@string/add_task"
+            app:icon="@drawable/ic_add"
+            app:iconTint="@color/white"
+            app:backgroundTint="@color/accent" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

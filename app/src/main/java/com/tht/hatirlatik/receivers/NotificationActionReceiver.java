@@ -12,6 +12,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 
 import com.tht.hatirlatik.model.Task;
+import com.tht.hatirlatik.model.NotificationType;
 import com.tht.hatirlatik.notification.AlarmHelper;
 import com.tht.hatirlatik.notification.NotificationHelper;
 import com.tht.hatirlatik.notification.TaskNotificationManager;
@@ -161,9 +162,6 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                                 });
                             }
                         });
-                        
-                        // Observer'ı kaldır
-                        taskLiveData.removeObserver(this);
                     } else {
                         // Eğer görev veritabanında bulunamazsa, bildirim bilgilerini kullanarak yeni bir hatırlatma oluştur
                         Calendar calendar = Calendar.getInstance();
@@ -175,14 +173,34 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                         newTask.setDescription(taskDescription);
                         newTask.setDateTime(calendar.getTime());
                         newTask.setReminderMinutes(0);
+                        newTask.setNotificationType(NotificationType.NOTIFICATION);
                         
-                        // Yeni hatırlatıcıyı planla
-                        TaskNotificationManager notificationManager = new TaskNotificationManager(context);
-                        notificationManager.scheduleTaskReminder(newTask);
-                        
-                        // Observer'ı kaldır
-                        taskLiveData.removeObserver(this);
+                        taskRepository.insertTask(newTask, new TaskRepository.OnTaskOperationCallback() {
+                            @Override
+                            public void onSuccess(long newTaskId) {
+                                newTask.setId(newTaskId);
+                                // Yeni hatırlatıcıyı planla
+                                TaskNotificationManager notificationManager = new TaskNotificationManager(context);
+                                notificationManager.scheduleTaskReminder(newTask);
+                                
+                                handler.post(() -> {
+                                    Toast.makeText(context, "Görev 10 dakika sonra tekrar hatırlatılacak", 
+                                            Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                            
+                            @Override
+                            public void onError(Exception e) {
+                                handler.post(() -> {
+                                    Toast.makeText(context, "Yeni görev oluşturulurken hata: " + e.getMessage(), 
+                                            Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        });
                     }
+                    
+                    // Observer'ı kaldır
+                    taskLiveData.removeObserver(this);
                 }
             };
             

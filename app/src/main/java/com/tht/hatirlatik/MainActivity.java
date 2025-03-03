@@ -25,20 +25,18 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.tht.hatirlatik.databinding.ActivityMainBinding;
 import com.tht.hatirlatik.utils.InternetHelper;
-
-import android.content.SharedPreferences;
-
-import android.os.Handler;
-
+import com.tht.hatirlatik.ui.fragment.TaskListFragment;
 import com.tht.hatirlatik.model.NotificationType;
 import com.tht.hatirlatik.model.Task;
 import com.tht.hatirlatik.notification.TaskNotificationManager;
 import com.tht.hatirlatik.repository.TaskRepository;
 
+import android.content.SharedPreferences;
+import android.os.Handler;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -58,8 +56,8 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
     private ActivityResultLauncher<String> requestPermissionLauncher;
     private InternetHelper internetHelper;
     private androidx.appcompat.app.AlertDialog noInternetDialog;
-    private FloatingActionButton fabAddTask;
-    private FloatingActionButton fabCalendar;
+    private ExtendedFloatingActionButton fabAddTask;
+    private ExtendedFloatingActionButton fabCalendar;
 
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler();
@@ -233,8 +231,34 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
                     fabAddTask.hide();
                     fabCalendar.hide();
                 }
+
+                // Toolbar menüsünü güncelle
+                invalidateOptionsMenu();
             });
         }
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        
+        if (navController != null && navController.getCurrentDestination() != null) {
+            int currentDestinationId = navController.getCurrentDestination().getId();
+            
+            // Takvim butonunu sadece görev listesi ekranında göster
+            MenuItem calendarItem = menu.findItem(R.id.action_custom_calendar);
+            if (calendarItem != null) {
+                calendarItem.setVisible(currentDestinationId == R.id.taskListFragment);
+            }
+            
+            // Filtreleme butonunu sadece görev listesi ekranında göster
+            MenuItem filterItem = menu.findItem(R.id.action_filter);
+            if (filterItem != null) {
+                filterItem.setVisible(currentDestinationId == R.id.taskListFragment);
+            }
+        }
+        
+        return true;
     }
 
     private void setupPermissionLauncher() {
@@ -371,8 +395,20 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
     public boolean onOptionsItemSelected(MenuItem item) {
         try {
             int itemId = item.getItemId();
-            if (itemId == R.id.action_settings && navController != null) {
+            if (itemId == R.id.action_settings) {
                 navController.navigate(R.id.action_taskList_to_settings);
+                return true;
+            } else if (itemId == R.id.action_filter) {
+                if (navController.getCurrentDestination().getId() == R.id.taskListFragment) {
+                    TaskListFragment fragment = (TaskListFragment) getSupportFragmentManager()
+                            .findFragmentById(R.id.nav_host_fragment)
+                            .getChildFragmentManager()
+                            .getFragments().get(0);
+                    fragment.showFilterMenu();
+                }
+                return true;
+            } else if (itemId == R.id.action_custom_calendar) {
+                navController.navigate(R.id.action_taskList_to_customCalendar);
                 return true;
             } else if (itemId == R.id.action_test_notifications) {
                 testNotificationSystem();

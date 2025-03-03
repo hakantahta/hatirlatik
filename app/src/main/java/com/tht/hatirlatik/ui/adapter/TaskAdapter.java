@@ -57,11 +57,11 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             super(itemView);
             titleTextView = itemView.findViewById(R.id.text_task_title);
             descriptionTextView = itemView.findViewById(R.id.text_task_description);
-            dateTimeTextView = itemView.findViewById(R.id.text_task_datetime);
-            statusTextView = itemView.findViewById(R.id.text_task_status);
-            statusImageView = itemView.findViewById(R.id.image_task_status);
+            dateTimeTextView = itemView.findViewById(R.id.chip_task_datetime);
+            statusTextView = itemView.findViewById(R.id.chip_task_status);
+            statusImageView = null;
             overdueTextView = itemView.findViewById(R.id.text_task_overdue);
-            overdueImageView = itemView.findViewById(R.id.image_task_overdue);
+            overdueImageView = null;
             menuButton = itemView.findViewById(R.id.image_task_menu);
             cardView = itemView.findViewById(R.id.card_view);
 
@@ -161,16 +161,14 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             // Görev süresinin geçip geçmediğini kontrol et
             boolean isOverdue = task.getDateTime().before(new Date());
 
-            // Görev durumu metnini ve göstergesini ayarla
+            // Görev durumu metnini ayarla
             if (task.isCompleted()) {
-                statusTextView.setText("Görev aktif değil, tamamlandı");
-                statusImageView.setImageResource(R.drawable.task_status_completed);
+                statusTextView.setText(R.string.task_completed);
                 // Tamamlanmış görevler için kırmızı arka plan
                 cardView.setCardBackgroundColor(cardView.getContext().getResources().getColor(
                     isNightMode() ? R.color.task_completed_background_dark : R.color.task_completed_background));
             } else {
-                statusTextView.setText("Görev aktif, tamamlanacak");
-                statusImageView.setImageResource(R.drawable.task_status_active);
+                statusTextView.setText(R.string.task_active);
                 // Aktif görevler için yeşil arka plan
                 cardView.setCardBackgroundColor(cardView.getContext().getResources().getColor(
                     isNightMode() ? R.color.task_active_background_dark : R.color.task_active_background));
@@ -179,10 +177,8 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             // Tarihi geçen görevler için ek bildirim göster/gizle
             if (isOverdue && !task.isCompleted()) {
                 overdueTextView.setVisibility(View.VISIBLE);
-                overdueImageView.setVisibility(View.VISIBLE);
             } else {
                 overdueTextView.setVisibility(View.GONE);
-                overdueImageView.setVisibility(View.GONE);
             }
 
             // Tamamlanmış görevlerin görünümünü güncelle
@@ -191,9 +187,7 @@ public class TaskAdapter extends ListAdapter<Task, TaskAdapter.TaskViewHolder> {
             descriptionTextView.setAlpha(alpha);
             dateTimeTextView.setAlpha(alpha);
             statusTextView.setAlpha(alpha);
-            statusImageView.setAlpha(alpha);
             overdueTextView.setAlpha(alpha);
-            overdueImageView.setAlpha(alpha);
             
             // Görsel geri bildirim için animasyon
             cardView.animate()

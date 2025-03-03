@@ -4,54 +4,68 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Ana renkler -->
-    <color name="primary">#2196F3</color>
-    <color name="primary_dark">#1976D2</color>
-    <color name="accent">#FF4081</color>
+    <!-- Ana renkler - Yeni palet -->
+    <color name="primary">#122668</color>
+    <color name="primary_dark">#0a1540</color>
+    <color name="primary_light">#3a4c90</color>
+    <color name="accent">#793d97</color>
+    <color name="accent_light">#a065be</color>
+    <color name="accent_dark">#521970</color>
+    <color name="tertiary">#209dd8</color>
+    <color name="quaternary">#20d3d8</color>
+    <color name="quinary">#e0efed</color>
 
     <!-- Metin renkleri -->
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#757575</color>
     <color name="divider">#BDBDBD</color>
-    <color name="primary_text">#212121</color>
-    <color name="secondary_text">#757575</color>
+    <color name="primary_text">#DE000000</color>
+    <color name="secondary_text">#99000000</color>
+    <color name="error">#FFB00020</color>
 
     <!-- Görev durumu renkleri -->
-    <color name="task_status_completed">#F44336</color>
-    <color name="task_completed_background">#F5F5F5</color>
-    <color name="task_active_background">#FFFFFF</color>
-    <color name="completed_task">#4CAF50</color>
-    <color name="active_task">#F44336</color>
+    <color name="task_status_completed">#209dd8</color>
+    <color name="task_completed_background">#e0efed</color>
+    <color name="task_active_background">#e8dff0</color>
+    <color name="completed_task">#209dd8</color>
+    <color name="active_task">#793d97</color>
+    <color name="overdue_task">#521970</color>
     
     <!-- Takvim görev durumu renkleri -->
-    <color name="task_green">#4CAF50</color>
-    <color name="task_red">#F44336</color>
-    <color name="task_yellow">#FFC107</color>
+    <color name="task_green">#209dd8</color>
+    <color name="task_red">#793d97</color>
+    <color name="task_yellow">#fbc32c</color>
+    <color name="task_blue">#20d3d8</color>
 
     <!-- Karanlık tema renkleri -->
-    <color name="dark_background">#121212</color>
-    <color name="dark_surface">#1E1E1E</color>
+    <color name="dark_background">#0b0806</color>
+    <color name="dark_surface">#1a1714</color>
     <color name="dark_error">#CF6679</color>
     <color name="dark_text_secondary">#B3FFFFFF</color>
     <color name="dark_divider">#1FFFFFFF</color>
     <color name="dark_secondary_text">#B3FFFFFF</color>
-    <color name="task_completed_background_dark">#2C2C2C</color>
-    <color name="task_active_background_dark">#1E1E1E</color>
+    <color name="task_completed_background_dark">#0a2e40</color>
+    <color name="task_active_background_dark">#1e0f29</color>
 
     <!-- Launcher icon background -->
-    <color name="ic_launcher_background">#2196F3</color>
+    <color name="ic_launcher_background">#122668</color>
 
     <!-- Material renkleri -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="colorSuccess">#4CAF50</color>
+    <color name="purple_200">#e0efed</color>
+    <color name="purple_500">#122668</color>
+    <color name="purple_700">#0a1540</color>
+    <color name="teal_200">#793d97</color>
+    <color name="teal_700">#521970</color>
+    <color name="colorSuccess">#209dd8</color>
 
     <!-- Gösterge renkleri -->
     <color name="indicator_task_exists">#4CAF50</color>
     <color name="indicator_task_completed">#F44336</color>
     <color name="indicator_no_task">#FFC107</color>
-    <color name="indicator_default">#757575</color>
+    <color name="indicator_default">#20d3d8</color>
+    
+    <!-- Öncelik renkleri -->
+    <color name="priority_high">#793d97</color>
+    <color name="priority_medium">#209dd8</color>
+    <color name="priority_low">#e0efed</color>
 </resources>

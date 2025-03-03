@@ -17,15 +17,20 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.card.MaterialCardView;
 import com.tht.hatirlatik.R;
 import com.tht.hatirlatik.databinding.FragmentTaskListBinding;
 import com.tht.hatirlatik.model.Task;
 import com.tht.hatirlatik.model.TaskFilter;
 import com.tht.hatirlatik.ui.adapter.TaskAdapter;
 import com.tht.hatirlatik.viewmodel.TaskViewModel;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemListener {
     
@@ -34,10 +39,11 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
     private View emptyStateView;
     private RecyclerView recyclerView;
     private CircularProgressIndicator progressBar;
-    private FloatingActionButton fabAddTask;
+    private ExtendedFloatingActionButton fabAddTask;
     private SwipeRefreshLayout swipeRefreshLayout;
     private View rootView;
     private FragmentTaskListBinding binding;
+    private MaterialCardView taskSummaryCard;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -58,7 +64,7 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
         super.onViewCreated(view, savedInstanceState);
         
         // View'ları başlat
-        initViews(view);
+        initViews();
         
         // ViewModel'i başlat
         viewModel = new ViewModelProvider(this).get(TaskViewModel.class);
@@ -95,11 +101,15 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
         }
     }
 
-    private void initViews(View view) {
+    private void initViews() {
         recyclerView = binding.recyclerViewTasks;
-        emptyStateView = binding.emptyState;
+        emptyStateView = binding.emptyState.getRoot();
         progressBar = binding.progressBar;
-        swipeRefreshLayout = binding.swipeRefresh;
+        swipeRefreshLayout = binding.swipeRefreshLayout;
+        taskSummaryCard = binding.cardTaskSummary;
+
+        // Görev özeti kartını başlangıçta gizle
+        taskSummaryCard.setVisibility(View.GONE);
     }
 
     private void setupSwipeRefresh() {
@@ -124,6 +134,7 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
                 adapter.submitList(null); // Önce listeyi temizle
                 adapter.submitList(tasks); // Yeni listeyi set et
                 updateEmptyState(tasks.isEmpty());
+                updateTaskSummary(tasks); // Görev özetini güncelle
             }
         });
 
@@ -181,7 +192,7 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
                 .show();
     }
 
-    private void showFilterMenu() {
+    public void showFilterMenu() {
         View menuItemView = requireActivity().findViewById(R.id.action_filter);
         PopupMenu popup = new PopupMenu(requireContext(), menuItemView);
         popup.getMenuInflater().inflate(R.menu.menu_filter, popup.getMenu());
@@ -256,6 +267,71 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
     private void showSnackbar(String message) {
         if (binding != null) {
             Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_LONG).show();
+        }
+    }
+
+    private void updateTaskSummary(List<Task> tasks) {
+        if (tasks == null || tasks.isEmpty()) {
+            taskSummaryCard.setVisibility(View.GONE);
+            return;
+        }
+
+        taskSummaryCard.setVisibility(View.VISIBLE);
+
+        // Bugünün başlangıç ve bitiş zamanlarını hesapla
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        Date startOfDay = calendar.getTime();
+
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        Date endOfDay = calendar.getTime();
+
+        // Bugünkü görevleri filtrele
+        List<Task> todaysTasks = tasks.stream()
+                .filter(task -> task.getDateTime().after(startOfDay) && 
+                        task.getDateTime().before(endOfDay))
+                .collect(Collectors.toList());
+
+        // Bugün için istatistikleri hesapla
+        int totalTodayTasks = todaysTasks.size();
+        long completedTodayTasks = todaysTasks.stream()
+                .filter(Task::isCompleted)
+                .count();
+        int remainingTodayTasks = totalTodayTasks - (int)completedTodayTasks;
+
+        // Yaklaşan görevleri hesapla (önümüzdeki 7 gün)
+        calendar.setTime(new Date()); // Şu anki zaman
+        calendar.add(Calendar.DAY_OF_MONTH, 7);
+        Date nextWeek = calendar.getTime();
+
+        long upcomingTasks = tasks.stream()
+                .filter(task -> !task.isCompleted() && 
+                        task.getDateTime().after(new Date()) && 
+                        task.getDateTime().before(nextWeek))
+                .count();
+
+        // Gecikmiş görevleri hesapla
+        long overdueTasks = tasks.stream()
+                .filter(task -> !task.isCompleted() && 
+                        task.getDateTime().before(new Date()))
+                .count();
+
+        // Özet metinlerini güncelle
+        binding.textTotalTodayTasks.setText(getString(R.string.total_tasks) + ": " + totalTodayTasks);
+        binding.textCompletedTodayTasks.setText(getString(R.string.completed_tasks) + ": " + completedTodayTasks);
+        binding.textRemainingTodayTasks.setText(getString(R.string.active_tasks) + ": " + remainingTodayTasks);
+        binding.textUpcomingTasks.setText("Yaklaşan Görevler: " + upcomingTasks);
+        binding.textOverdueTasks.setText("Gecikmiş Görevler: " + overdueTasks);
+
+        // İlerleme çubuğunu güncelle
+        if (totalTodayTasks > 0) {
+            int progress = (int) ((completedTodayTasks * 100) / totalTodayTasks);
+            binding.progressTodayTasks.setProgress(progress);
+        } else {
+            binding.progressTodayTasks.setProgress(0);
         }
     }
 

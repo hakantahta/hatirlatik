@@ -21,6 +21,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.tht.hatirlatik.R;
 import com.tht.hatirlatik.databinding.FragmentTaskDetailBinding;
 import com.tht.hatirlatik.model.Task;
+import com.tht.hatirlatik.model.NotificationType;
 import com.tht.hatirlatik.viewmodel.TaskViewModel;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -75,8 +76,12 @@ public class TaskDetailFragment extends Fragment {
         binding.textTaskDatetime.setText(dateFormat.format(task.getDateTime()));
         binding.textReminderTime.setText(String.format(getString(R.string.reminder_minutes_format), 
                 task.getReminderMinutes()));
-        binding.textNotificationType.setText(task.getNotificationType().name());
+        binding.textNotificationType.setText(getNotificationTypeText(task.getNotificationType()));
         binding.checkboxTask.setChecked(task.isCompleted());
+        
+        // Görev özetini oluştur ve göster
+        String summary = generateTaskSummary(task);
+        binding.textTaskSummary.setText(summary);
         
         // Tamamlanmış görevlerin görünümünü güncelle
         float alpha = task.isCompleted() ? 0.5f : 1.0f;
@@ -86,6 +91,84 @@ public class TaskDetailFragment extends Fragment {
             binding.textTaskDatetime.setAlpha(alpha);
             binding.textReminderTime.setAlpha(alpha);
             binding.textNotificationType.setAlpha(alpha);
+            binding.textTaskSummary.setAlpha(alpha);
+        }
+    }
+
+    private String generateTaskSummary(Task task) {
+        StringBuilder summary = new StringBuilder();
+        
+        // Görevin durumu
+        String status = task.isCompleted() ? "Tamamlandı" : "Aktif";
+        summary.append("Durum: ").append(status).append("\n\n");
+        
+        // Kalan süre veya geçen süre
+        long currentTime = System.currentTimeMillis();
+        long taskTime = task.getDateTime().getTime();
+        long timeDiff = taskTime - currentTime;
+        
+        if (timeDiff > 0) {
+            // Gelecekteki görev
+            long days = timeDiff / (24 * 60 * 60 * 1000);
+            long hours = (timeDiff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000);
+            long minutes = (timeDiff % (60 * 60 * 1000)) / (60 * 1000);
+            
+            summary.append("Kalan süre: ");
+            if (days > 0) {
+                summary.append(days).append(" gün ");
+            }
+            if (hours > 0 || days > 0) {
+                summary.append(hours).append(" saat ");
+            }
+            summary.append(minutes).append(" dakika");
+        } else {
+            // Geçmiş görev
+            long diffInMinutes = Math.abs(timeDiff) / (60 * 1000);
+            if (diffInMinutes < 60) {
+                summary.append("Geçen süre: ").append(diffInMinutes).append(" dakika önce");
+            } else if (diffInMinutes < 24 * 60) {
+                long hours = diffInMinutes / 60;
+                long minutes = diffInMinutes % 60;
+                summary.append("Geçen süre: ").append(hours).append(" saat");
+                if (minutes > 0) {
+                    summary.append(" ").append(minutes).append(" dakika");
+                }
+                summary.append(" önce");
+            } else {
+                long days = diffInMinutes / (24 * 60);
+                long hours = (diffInMinutes % (24 * 60)) / 60;
+                summary.append("Geçen süre: ").append(days).append(" gün");
+                if (hours > 0) {
+                    summary.append(" ").append(hours).append(" saat");
+                }
+                summary.append(" önce");
+            }
+        }
+        
+        summary.append("\n\n");
+        
+        // Hatırlatıcı bilgisi
+        if (task.getReminderMinutes() > 0) {
+            summary.append("Hatırlatıcı: ").append(task.getReminderMinutes())
+                   .append(" dakika önce\n");
+            summary.append("Bildirim tipi: ").append(getNotificationTypeText(task.getNotificationType()));
+        } else {
+            summary.append("Hatırlatıcı ayarlanmamış");
+        }
+        
+        return summary.toString();
+    }
+
+    private String getNotificationTypeText(NotificationType type) {
+        switch (type) {
+            case NOTIFICATION:
+                return "Normal Bildirim";
+            case ALARM:
+                return "Alarm";
+            case NOTIFICATION_AND_ALARM:
+                return "Bildirim ve Alarm";
+            default:
+                return type.name();
         }
     }
 

@@ -3,12 +3,12 @@
     <!-- Base application theme. -->
     <style name="Theme.Hatirlatik" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_200</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorOnPrimary">@color/black</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_200</item>
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorSecondaryVariant">@color/accent_dark</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
@@ -36,6 +36,7 @@
         <item name="materialButtonStyle">@style/Widget.Hatirlatik.Button</item>
         <item name="toolbarStyle">@style/Widget.Hatirlatik.Toolbar</item>
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Hatirlatik.BottomSheetDialog</item>
+        <item name="floatingActionButtonStyle">@style/Widget.Hatirlatik.FloatingActionButton.Dark</item>
     </style>
     
     <!-- Özel Bileşen Stilleri -->
@@ -47,5 +48,21 @@
     
     <style name="TextAppearance.Hatirlatik.Toolbar.Title" parent="TextAppearance.MaterialComponents.Headline6">
         <item name="android:textColor">?attr/colorOnBackground</item>
+    </style>
+    
+    <!-- FloatingActionButton Karanlık Tema Stili -->
+    <style name="Widget.Hatirlatik.FloatingActionButton.Dark" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="backgroundTint">@color/accent</item>
+        <item name="tint">@color/dark_background</item>
+        <item name="rippleColor">@color/accent_light</item>
+        <item name="elevation">6dp</item>
+    </style>
+    
+    <!-- Takvim FloatingActionButton Karanlık Tema Stili -->
+    <style name="Widget.Hatirlatik.FloatingActionButton.Calendar.Dark" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="backgroundTint">@color/tertiary</item>
+        <item name="tint">@color/dark_background</item>
+        <item name="rippleColor">@color/quaternary</item>
+        <item name="elevation">6dp</item>
     </style>
 </resources>

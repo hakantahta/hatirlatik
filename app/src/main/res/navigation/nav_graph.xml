@@ -28,32 +28,16 @@
             app:popExitAnim="@anim/slide_out_right" />
             
         <action
-            android:id="@+id/action_taskList_to_settings"
-            app:destination="@id/settingsFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-            
-        <action
-            android:id="@+id/action_taskList_to_calendar"
-            app:destination="@id/calendarFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-            
-        <action
-            android:id="@+id/action_taskList_to_agendaCalendar"
-            app:destination="@id/agendaCalendarFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-            
-        <action
             android:id="@+id/action_taskList_to_customCalendar"
             app:destination="@id/customCalendarFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+            
+        <action
+            android:id="@+id/action_taskList_to_settings"
+            app:destination="@id/settingsFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -104,62 +88,8 @@
         android:id="@+id/settingsFragment"
         android:name="com.tht.hatirlatik.ui.settings.SettingsFragment"
         android:label="@string/settings"
-        tools:layout="@xml/preferences" />
+        tools:layout="@layout/fragment_settings" />
         
-    <fragment
-        android:id="@+id/calendarFragment"
-        android:name="com.tht.hatirlatik.ui.fragment.CalendarFragment"
-        android:label="@string/calendar"
-        tools:layout="@layout/fragment_calendar">
-        
-        <action
-            android:id="@+id/action_calendarFragment_to_taskForm"
-            app:destination="@id/taskFormFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-            
-        <action
-            android:id="@+id/action_calendarFragment_to_taskDetail"
-            app:destination="@id/taskDetailFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right">
-            <argument
-                android:name="taskId"
-                app:argType="long" />
-        </action>
-    </fragment>
-    
-    <fragment
-        android:id="@+id/agendaCalendarFragment"
-        android:name="com.tht.hatirlatik.ui.fragment.AgendaCalendarFragment"
-        android:label="@string/agenda_calendar"
-        tools:layout="@layout/fragment_agenda_calendar">
-        
-        <action
-            android:id="@+id/action_agendaCalendarFragment_to_taskForm"
-            app:destination="@id/taskFormFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-            
-        <action
-            android:id="@+id/action_agendaCalendarFragment_to_taskDetail"
-            app:destination="@id/taskDetailFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right">
-            <argument
-                android:name="taskId"
-                app:argType="long" />
-        </action>
-    </fragment>
-    
     <fragment
         android:id="@+id/customCalendarFragment"
         android:name="com.tht.hatirlatik.ui.fragment.CustomCalendarFragment"
@@ -185,6 +115,14 @@
                 android:name="taskId"
                 app:argType="long" />
         </action>
+        
+        <action
+            android:id="@+id/action_customCalendarFragment_to_settings"
+            app:destination="@id/settingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
 </navigation> 

@@ -15,32 +15,62 @@
             android:layout_height="wrap_content"
             android:padding="16dp">
 
-            <TextView
-                android:id="@+id/text_task_title"
-                android:layout_width="0dp"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_header"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceHeadline5"
-                app:layout_constraintEnd_toStartOf="@+id/checkbox_task"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="Görev Başlığı" />
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="0dp"
+                app:layout_constraintTop_toTopOf="parent">
 
-            <CheckBox
-                android:id="@+id/checkbox_task"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/text_task_title"
-                app:layout_constraintBottom_toBottomOf="@id/text_task_title" />
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <View
+                        android:id="@+id/priority_indicator"
+                        android:layout_width="4dp"
+                        android:layout_height="0dp"
+                        android:background="@color/priority_medium"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/text_task_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:textAppearance="?attr/textAppearanceHeadline5"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toStartOf="@+id/checkbox_task"
+                        app:layout_constraintStart_toEndOf="@+id/priority_indicator"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="Görev Başlığı" />
+
+                    <CheckBox
+                        android:id="@+id/checkbox_task"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:theme="@style/Widget.Hatirlatik.CheckBox"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/text_task_title"
+                        app:layout_constraintBottom_toBottomOf="@id/text_task_title" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_datetime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardCornerRadius="8dp"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:layout_constraintTop_toBottomOf="@id/text_task_title">
+                app:strokeWidth="0dp"
+                app:layout_constraintTop_toBottomOf="@id/card_header">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -52,33 +82,45 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/task_date"
-                        android:textAppearance="?attr/textAppearanceSubtitle2" />
+                        android:textAppearance="?attr/textAppearanceSubtitle2"
+                        android:textColor="@color/primary" />
 
                     <TextView
                         android:id="@+id/text_task_datetime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="8dp"
                         android:drawablePadding="8dp"
                         android:textAppearance="?attr/textAppearanceBody1"
+                        android:textStyle="bold"
                         app:drawableStartCompat="@drawable/ic_calendar"
+                        app:drawableTint="@color/primary"
                         tools:text="24 Şubat 2024, 15:30" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="#EEEEEE" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
                         android:text="@string/task_reminder_hint"
-                        android:textAppearance="?attr/textAppearanceSubtitle2" />
+                        android:textAppearance="?attr/textAppearanceSubtitle2"
+                        android:textColor="@color/primary" />
 
                     <TextView
                         android:id="@+id/text_reminder_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="8dp"
                         android:drawablePadding="8dp"
                         android:textAppearance="?attr/textAppearanceBody1"
+                        android:textStyle="bold"
                         app:drawableStartCompat="@drawable/ic_alarm"
+                        app:drawableTint="@color/accent"
                         tools:text="30 dakika önce" />
 
                 </LinearLayout>
@@ -90,8 +132,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardCornerRadius="8dp"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
+                app:strokeWidth="0dp"
                 app:layout_constraintTop_toBottomOf="@id/card_datetime">
 
                 <LinearLayout
@@ -104,7 +147,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/task_description"
-                        android:textAppearance="?attr/textAppearanceSubtitle2" />
+                        android:textAppearance="?attr/textAppearanceSubtitle2"
+                        android:textColor="@color/primary" />
 
                     <TextView
                         android:id="@+id/text_task_description"
@@ -123,8 +167,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardCornerRadius="8dp"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
+                app:strokeWidth="0dp"
                 app:layout_constraintTop_toBottomOf="@id/card_description">
 
                 <LinearLayout
@@ -137,17 +182,55 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/notification_type"
-                        android:textAppearance="?attr/textAppearanceSubtitle2" />
+                        android:textAppearance="?attr/textAppearanceSubtitle2"
+                        android:textColor="@color/primary" />
 
                     <TextView
                         android:id="@+id/text_notification_type"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="8dp"
                         android:drawablePadding="8dp"
                         android:textAppearance="?attr/textAppearanceBody1"
+                        android:textStyle="bold"
                         app:drawableStartCompat="@drawable/ic_notification"
+                        app:drawableTint="@color/accent"
                         tools:text="Normal Bildirim" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="0dp"
+                app:layout_constraintTop_toBottomOf="@id/card_notification">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/task_summary"
+                        android:textAppearance="?attr/textAppearanceSubtitle2"
+                        android:textColor="@color/primary" />
+
+                    <TextView
+                        android:id="@+id/text_task_summary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textAppearance="?attr/textAppearanceBody1"
+                        tools:text="Görev özeti burada görünecek" />
 
                 </LinearLayout>
 
@@ -157,13 +240,16 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fab_edit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:contentDescription="@string/edit_task"
-        app:srcCompat="@drawable/ic_edit" />
+        android:text="@string/edit_task"
+        app:icon="@drawable/ic_edit"
+        app:iconTint="@color/white"
+        app:backgroundTint="@color/accent" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout> 

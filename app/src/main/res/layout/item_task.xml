@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,23 +7,35 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="8dp"
-    android:layout_marginVertical="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
 
+        <View
+            android:id="@+id/priority_indicator"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:background="@color/priority_medium"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
             android:id="@+id/text_task_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_marginEnd="8dp"
             android:textAppearance="?attr/textAppearanceSubtitle1"
+            android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/image_task_menu"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/priority_indicator"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Görev Başlığı" />
 
@@ -41,62 +53,46 @@
             app:layout_constraintTop_toBottomOf="@+id/text_task_title"
             tools:text="Görev açıklaması buraya gelecek. Uzun açıklamalar iki satırla sınırlandırılacak." />
 
-        <TextView
-            android:id="@+id/text_task_datetime"
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_task_datetime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:drawablePadding="4dp"
             android:textAppearance="?attr/textAppearanceCaption"
             android:textColor="?attr/colorPrimary"
+            app:chipBackgroundColor="#F5F5F5"
+            app:chipIcon="@drawable/ic_calendar"
+            app:chipIconTint="?attr/colorPrimary"
             app:layout_constraintStart_toStartOf="@+id/text_task_title"
             app:layout_constraintTop_toBottomOf="@+id/text_task_description"
-            app:drawableStartCompat="@drawable/ic_calendar"
-            tools:text="24 Şubat 2024, 15:30" />
+            tools:text="24 Şubat, 15:30" />
 
-        <TextView
-            android:id="@+id/text_task_status"
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_task_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textAppearance="?attr/textAppearanceCaption"
-            android:textColor="?android:attr/textColorSecondary"
-            app:layout_constraintStart_toStartOf="@+id/text_task_datetime"
-            app:layout_constraintTop_toBottomOf="@+id/text_task_datetime"
-            tools:text="Görev aktif, tamamlanacak" />
-
-        <ImageView
-            android:id="@+id/image_task_status"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
             android:layout_marginStart="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/text_task_status"
-            app:layout_constraintStart_toEndOf="@+id/text_task_status"
-            app:layout_constraintTop_toTopOf="@+id/text_task_status"
-            tools:src="@drawable/task_status_active" />
+            android:textAppearance="?attr/textAppearanceCaption"
+            app:chipBackgroundColor="#F5F5F5"
+            app:chipIconTint="@color/task_status_completed"
+            app:layout_constraintBottom_toBottomOf="@+id/chip_task_datetime"
+            app:layout_constraintStart_toEndOf="@+id/chip_task_datetime"
+            app:layout_constraintTop_toTopOf="@+id/chip_task_datetime"
+            tools:text="Aktif" />
 
         <TextView
             android:id="@+id/text_task_overdue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
             android:textAppearance="?attr/textAppearanceCaption"
-            android:textColor="#FFC107"
+            android:textColor="@color/overdue_task"
             android:visibility="gone"
-            app:layout_constraintStart_toStartOf="@+id/text_task_status"
-            app:layout_constraintTop_toBottomOf="@+id/text_task_status"
-            android:text="Görev saati geçti!" />
-
-        <ImageView
-            android:id="@+id/image_task_overdue"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_marginStart="8dp"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="@+id/text_task_overdue"
-            app:layout_constraintStart_toEndOf="@+id/text_task_overdue"
-            app:layout_constraintTop_toTopOf="@+id/text_task_overdue"
-            android:src="@drawable/task_status_overdue" />
+            app:layout_constraintStart_toStartOf="@+id/chip_task_datetime"
+            app:layout_constraintTop_toBottomOf="@+id/chip_task_datetime"
+            android:text="Görev saati geçti!"
+            app:drawableStartCompat="@drawable/ic_warning"
+            android:drawablePadding="4dp" />
 
         <TextView
             android:id="@+id/text_swipe_hint"
@@ -107,6 +103,7 @@
             android:textColor="?android:attr/textColorSecondary"
             android:text="Durumu değiştirmek için uzun basın"
             android:textSize="11sp"
+            android:visibility="gone"
             app:layout_constraintStart_toStartOf="@+id/text_task_overdue"
             app:layout_constraintTop_toBottomOf="@+id/text_task_overdue" />
 
@@ -123,4 +120,4 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</androidx.cardview.widget.CardView> 
+</com.google.android.material.card.MaterialCardView> 

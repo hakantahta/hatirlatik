@@ -5,6 +5,7 @@ import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import com.tht.hatirlatik.model.Task;
+import com.tht.hatirlatik.model.NotificationType;
 import com.tht.hatirlatik.workers.TaskWorker;
 import java.util.concurrent.TimeUnit;
 
@@ -21,9 +22,9 @@ public class TaskNotificationManager {
 
     public void scheduleTaskReminder(Task task) {
         // Hatırlatma süresini hesapla (milisaniye cinsinden)
-        long delayMillis = task.getDateTime().getTime() - 
-                System.currentTimeMillis() - 
-                (task.getReminderMinutes() * 60 * 1000);
+        long taskTime = task.getDateTime().getTime();
+        long reminderTime = taskTime - (task.getReminderMinutes() * 60 * 1000L);
+        long delayMillis = reminderTime - System.currentTimeMillis();
 
         // Eğer zaman geçmişse, hemen bildirim göster
         if (delayMillis <= 0) {
@@ -49,11 +50,9 @@ public class TaskNotificationManager {
         WorkManager.getInstance(context).enqueue(workRequest);
 
         // Eğer alarm tipi seçilmişse, AlarmManager ile de planla
-        switch (task.getNotificationType()) {
-            case ALARM:
-            case NOTIFICATION_AND_ALARM:
-                alarmHelper.scheduleAlarm(task);
-                break;
+        if (task.getNotificationType() == NotificationType.ALARM || 
+            task.getNotificationType() == NotificationType.NOTIFICATION_AND_ALARM) {
+            alarmHelper.scheduleAlarm(task);
         }
     }
 

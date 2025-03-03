@@ -73,12 +73,10 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
     private void observeViewModel() {
         viewModel.getTasks().observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null && !tasks.isEmpty()) {
-                binding.emptyState.setVisibility(View.GONE);
-                binding.recyclerViewTasks.setVisibility(View.VISIBLE);
+                updateEmptyState(false);
                 adapter.submitList(tasks);
             } else {
-                binding.emptyState.setVisibility(View.VISIBLE);
-                binding.recyclerViewTasks.setVisibility(View.GONE);
+                updateEmptyState(true);
             }
         });
 
@@ -87,6 +85,16 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
                 Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void updateEmptyState(boolean isEmpty) {
+        if (isEmpty) {
+            binding.recyclerViewTasks.setVisibility(View.GONE);
+            binding.emptyState.getRoot().setVisibility(View.VISIBLE);
+        } else {
+            binding.recyclerViewTasks.setVisibility(View.VISIBLE);
+            binding.emptyState.getRoot().setVisibility(View.GONE);
+        }
     }
 
     @Override

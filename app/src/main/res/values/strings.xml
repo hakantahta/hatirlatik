@@ -28,8 +28,17 @@
     <string name="calendar_marked_days_info">%d gün için görev bulunuyor</string>
     
     <!-- Task states -->
-    <string name="task_completed">Görev Tamamlandı</string>
-    <string name="task_active">Görev Aktif</string>
+    <string name="task_completed">Görev aktif değil, tamamlandı</string>
+    <string name="task_active">Görev aktif, tamamlanacak</string>
+    <string name="task_overdue">Süresi Geçmiş</string>
+    
+    <!-- Task Summary -->
+    <string name="task_summary">Görev Özeti</string>
+    <string name="active_tasks">Aktif Görevler</string>
+    <string name="completed_tasks">Tamamlanan Görevler</string>
+    <string name="total_tasks">Toplam Görevler</string>
+    <string name="all_tasks">Tüm Görevler</string>
+    <string name="add_first_task">İlk Görevi Ekle</string>
     
     <!-- Notifications -->
     <string name="notification_title">Görev Hatırlatması</string>
@@ -76,6 +85,7 @@
     <string name="error_empty_date">Görev tarihi seçilmedi</string>
     <string name="error_empty_time">Görev saati seçilmedi</string>
     <string name="error_past_date">Geçmiş bir tarih seçilemez</string>
+    <string name="error_past_time">Geçmiş bir saat seçilemez</string>
     <string name="reminder_minutes_format">%d dakika önce hatırlat</string>
     <string name="undo">Geri Al</string>
     
