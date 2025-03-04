@@ -65,20 +65,17 @@ public class TaskWidgetRemoteViewsFactory implements RemoteViewsService.RemoteVi
         // Veritabanı işlemlerini ana thread'de yapmak StrictMode ihlali oluşturabilir
         // Bu nedenle senkron bir şekilde çalışacak bir çözüm kullanıyoruz
         
-        // Önce boş bir liste oluştur
-        tasks = new ArrayList<>();
-        
         try {
             // Veritabanı bağlantısını yenile
-            if (taskDao == null) {
-                AppDatabase database = AppDatabase.getInstance(context);
-                if (database == null) {
-                    Log.e(TAG, "Veritabanı örneği alınamadı");
-                    return;
-                }
-                taskDao = database.taskDao();
-                Log.d(TAG, "TaskDao yeniden oluşturuldu");
+            AppDatabase database = AppDatabase.getInstance(context);
+            if (database == null) {
+                Log.e(TAG, "Veritabanı örneği alınamadı");
+                tasks = new ArrayList<>();
+                return;
             }
+            
+            taskDao = database.taskDao();
+            Log.d(TAG, "TaskDao yeniden oluşturuldu");
             
             // Bugünün görevlerini getir
             Calendar startOfDay = Calendar.getInstance();
@@ -100,8 +97,7 @@ public class TaskWidgetRemoteViewsFactory implements RemoteViewsService.RemoteVi
             Log.d(TAG, "Bugün için " + todayTasks.size() + " görev bulundu");
             
             // Görevleri güncelle
-            tasks.clear();
-            tasks.addAll(todayTasks);
+            tasks = new ArrayList<>(todayTasks);
             
             // Görevleri tarihe göre sırala
             java.util.Collections.sort(tasks, new java.util.Comparator<Task>() {
@@ -114,7 +110,7 @@ public class TaskWidgetRemoteViewsFactory implements RemoteViewsService.RemoteVi
             // Görevleri logla
             for (int i = 0; i < tasks.size(); i++) {
                 Task task = tasks.get(i);
-                Log.d(TAG, "Görev " + i + ": " + task.getTitle() + " (ID: " + task.getId() + ")");
+                Log.d(TAG, "Görev " + i + ": " + task.getTitle() + " (ID: " + task.getId() + ", Tamamlandı: " + task.isCompleted() + ")");
             }
             
             Log.d(TAG, "Görevler başarıyla yüklendi ve sıralandı");

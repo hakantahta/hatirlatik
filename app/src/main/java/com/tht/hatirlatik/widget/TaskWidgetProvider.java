@@ -70,6 +70,23 @@ public class TaskWidgetProvider extends AppWidgetProvider {
                 
                 Log.d(TAG, "onReceive: Widget manuel olarak güncellendi");
             }
+            // Veri güncellendiğinde widget'ı güncelle
+            else if (action.equals(ACTION_DATA_UPDATED)) {
+                Log.d(TAG, "onReceive: Veri güncelleme bildirimi alındı");
+                
+                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+                int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, TaskWidgetProvider.class));
+                
+                // Widget'ı güncelle
+                onUpdate(context, appWidgetManager, appWidgetIds);
+                
+                // Veri değişikliğini bildir
+                for (int appWidgetId : appWidgetIds) {
+                    appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list_view);
+                }
+                
+                Log.d(TAG, "onReceive: Widget veri güncellemesi sonrası yenilendi");
+            }
             // Görev tamamlandı/tamamlanmadı olarak işaretle
             else if (action.equals(ACTION_TASK_COMPLETED)) {
                 Log.d(TAG, "onReceive: Görev tamamlanma durumu değiştirildi");

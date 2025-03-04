@@ -304,7 +304,10 @@ public class TaskViewModel extends AndroidViewModel {
     // Widget'ı güncelleme
     private void updateWidgets() {
         try {
-            // MainActivity'den widget güncelleme metodunu çağır
+            // Widget'ı doğrudan güncelle
+            com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(getApplication());
+            
+            // Ayrıca uygulama sınıfından da güncelleme yap
             if (getApplication() instanceof com.tht.hatirlatik.HatirlatikApplication) {
                 com.tht.hatirlatik.HatirlatikApplication app = 
                     (com.tht.hatirlatik.HatirlatikApplication) getApplication();

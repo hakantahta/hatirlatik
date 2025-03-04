@@ -46,8 +46,12 @@ public class HatirlatikApplication extends Application implements Configuration.
      * Widget'ları günceller
      */
     public void updateWidgets() {
+        // Widget'ı yenilemek için intent oluştur
         Intent intent = new Intent(this, TaskWidgetProvider.class);
         intent.setAction(TaskWidgetProvider.ACTION_DATA_UPDATED);
         sendBroadcast(intent);
+        
+        // Ayrıca doğrudan tüm widget'ları güncelle
+        TaskWidgetProvider.updateAllWidgets(this);
     }
 } 
