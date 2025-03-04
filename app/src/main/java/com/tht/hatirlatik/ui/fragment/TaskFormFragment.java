@@ -213,14 +213,62 @@ public class TaskFormFragment extends Fragment {
         NotificationType notificationType = radioGroupNotificationType.getCheckedRadioButtonId() ==
                 R.id.radio_notification_alarm ? NotificationType.ALARM : NotificationType.NOTIFICATION;
 
-        Task task = new Task(title, description, dateTime, reminderMinutes, notificationType);
-        viewModel.insertTask(task);
+        if (editingTaskId != -1L && editingTask != null) {
+            // Mevcut görevin özelliklerini güncelle
+            editingTask.setTitle(title);
+            editingTask.setDescription(description);
+            editingTask.setDateTime(dateTime);
+            editingTask.setReminderMinutes(reminderMinutes);
+            editingTask.setNotificationType(notificationType);
+            
+            // Görevi düzenlediğimizde durumunu aktif olarak ayarla
+            editingTask.setCompleted(false);
+            
+            // Görevi güncelle
+            viewModel.updateTask(editingTask);
+            
+            // Kullanıcıya bilgi ver
+            showSnackbar(getString(R.string.task_updated_active));
+        } else {
+            // Yeni görev oluştur
+            Task task = new Task(title, description, dateTime, reminderMinutes, notificationType);
+            viewModel.insertTask(task);
+            
+            // Yeni görev eklediğimizde widget'ı hemen güncelle
+            updateWidgets();
+            
+            // Kullanıcıya bilgi ver
+            showSnackbar(getString(R.string.task_added));
+        }
         
-        // Widget'ı yenile
-        com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(requireContext());
+        // Widget'ı güncelle - birden fazla yöntemle
+        updateWidgets();
         
         // Ana listeye geri dön
         Navigation.findNavController(requireView()).navigateUp();
+    }
+    
+    // Widget'ı güncelleme yardımcı metodu
+    private void updateWidgets() {
+        try {
+            // 1. Yöntem: Widget'ı doğrudan güncelle
+            com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(requireContext());
+            
+            // 2. Yöntem: Uygulama sınıfından güncelleme yap
+            if (requireContext().getApplicationContext() instanceof com.tht.hatirlatik.HatirlatikApplication) {
+                com.tht.hatirlatik.HatirlatikApplication app = 
+                    (com.tht.hatirlatik.HatirlatikApplication) requireContext().getApplicationContext();
+                app.updateWidgets();
+            }
+            
+            // 3. Yöntem: Doğrudan tüm widget'ları güncelle
+            com.tht.hatirlatik.widget.TaskWidgetProvider.updateAllWidgets(requireContext());
+            
+            // 4. Yöntem: ViewModel üzerinden güncelleme yap
+            viewModel.updateWidgets();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean validateForm() {

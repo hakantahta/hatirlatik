@@ -237,13 +237,30 @@ public class TaskWidgetProvider extends AppWidgetProvider {
             
             Log.d(TAG, "Toplam " + appWidgetIds.length + " widget bulundu");
             
-            // Widget verilerini güncelle
-            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_view);
-            
-            // Widget'ları güncelle
-            for (int appWidgetId : appWidgetIds) {
-                updateAppWidget(context, appWidgetManager, appWidgetId);
-                Log.d(TAG, "Widget ID: " + appWidgetId + " güncellendi");
+            if (appWidgetIds.length > 0) {
+                // Widget verilerini güncelle
+                appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_view);
+                
+                // Widget'ları güncelle
+                for (int appWidgetId : appWidgetIds) {
+                    updateAppWidget(context, appWidgetManager, appWidgetId);
+                    Log.d(TAG, "Widget ID: " + appWidgetId + " güncellendi");
+                }
+                
+                // Ayrıca bir yayın gönder
+                Intent updateIntent = new Intent(context, TaskWidgetProvider.class);
+                updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+                context.sendBroadcast(updateIntent);
+                
+                // Veri güncellemesi için özel bir yayın daha gönder
+                Intent dataIntent = new Intent(context, TaskWidgetProvider.class);
+                dataIntent.setAction(ACTION_DATA_UPDATED);
+                context.sendBroadcast(dataIntent);
+                
+                Log.d(TAG, "Widget güncelleme yayınları gönderildi");
+            } else {
+                Log.d(TAG, "Güncellenecek widget bulunamadı");
             }
         } catch (Exception e) {
             Log.e(TAG, "Widget güncellenirken hata oluştu: " + e.getMessage(), e);
@@ -257,13 +274,33 @@ public class TaskWidgetProvider extends AppWidgetProvider {
     public static void refreshWidget(Context context) {
         Log.d(TAG, "refreshWidget: Widget yenileme isteği alındı");
         
-        // Widget'ı yenilemek için intent oluştur
-        Intent intent = new Intent(context, TaskWidgetProvider.class);
-        intent.setAction(ACTION_REFRESH_WIDGET);
-        
-        // Intent'i yayınla
-        context.sendBroadcast(intent);
-        
-        Log.d(TAG, "refreshWidget: Widget yenileme isteği gönderildi");
+        try {
+            // Widget'ı yenilemek için intent oluştur
+            Intent refreshIntent = new Intent(context, TaskWidgetProvider.class);
+            refreshIntent.setAction(ACTION_REFRESH_WIDGET);
+            
+            // Intent'i yayınla
+            context.sendBroadcast(refreshIntent);
+            
+            // Ayrıca doğrudan güncelleme yap
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(
+                    new ComponentName(context, TaskWidgetProvider.class));
+            
+            if (appWidgetIds.length > 0) {
+                // Widget verilerini güncelle
+                appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list_view);
+                
+                // Standart güncelleme yayını da gönder
+                Intent updateIntent = new Intent(context, TaskWidgetProvider.class);
+                updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+                context.sendBroadcast(updateIntent);
+            }
+            
+            Log.d(TAG, "refreshWidget: Widget yenileme isteği gönderildi");
+        } catch (Exception e) {
+            Log.e(TAG, "refreshWidget: Widget yenileme hatası: " + e.getMessage(), e);
+        }
     }
 } 

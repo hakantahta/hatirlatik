@@ -83,8 +83,24 @@ public class TaskViewModel extends AndroidViewModel {
                 task.setId(taskId);
                 // Görevi ekledikten sonra hatırlatıcıyı planla
                 notificationManager.scheduleTaskReminder(task);
-                // Widget'ı güncelle
-                updateWidgets();
+                
+                // Widget'ı güncelle - daha güçlü bir şekilde
+                try {
+                    // Widget'ı doğrudan güncelle
+                    com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(getApplication());
+                    
+                    // Ayrıca uygulama sınıfından da güncelleme yap
+                    if (getApplication() instanceof com.tht.hatirlatik.HatirlatikApplication) {
+                        com.tht.hatirlatik.HatirlatikApplication app = 
+                            (com.tht.hatirlatik.HatirlatikApplication) getApplication();
+                        app.updateWidgets();
+                    }
+                    
+                    // Doğrudan tüm widget'ları güncelle
+                    com.tht.hatirlatik.widget.TaskWidgetProvider.updateAllWidgets(getApplication());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override

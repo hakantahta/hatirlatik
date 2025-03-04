@@ -92,9 +92,21 @@ public class TaskWidgetRemoteViewsFactory implements RemoteViewsService.RemoteVi
 
             Log.d(TAG, "Tarih aralığı: " + startOfDay.getTime() + " - " + endOfDay.getTime());
             
+            // Önce veritabanı bağlantısını kontrol et
+            if (taskDao == null) {
+                Log.e(TAG, "TaskDao null, yeniden oluşturuluyor");
+                taskDao = database.taskDao();
+            }
+            
             // Bugünün görevlerini al - doğrudan çağırıyoruz
-            final List<Task> todayTasks = taskDao.getTasksBetweenDatesSync(startOfDay.getTime(), endOfDay.getTime());
-            Log.d(TAG, "Bugün için " + todayTasks.size() + " görev bulundu");
+            List<Task> todayTasks;
+            try {
+                todayTasks = taskDao.getTasksBetweenDatesSync(startOfDay.getTime(), endOfDay.getTime());
+                Log.d(TAG, "Bugün için " + todayTasks.size() + " görev bulundu");
+            } catch (Exception e) {
+                Log.e(TAG, "Görevler alınırken hata: " + e.getMessage(), e);
+                todayTasks = new ArrayList<>();
+            }
             
             // Görevleri güncelle
             tasks = new ArrayList<>(todayTasks);
