@@ -16,6 +16,7 @@
     <string name="add_task">Görev Ekle</string>
     <string name="edit_task">Görevi Düzenle</string>
     <string name="delete_task">Görevi Sil</string>
+    <string name="update">Güncelle</string>
     
     <!-- Calendar View -->
     <string name="calendar">Takvim</string>
