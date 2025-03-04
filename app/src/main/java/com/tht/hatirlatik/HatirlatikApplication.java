@@ -1,28 +1,16 @@
 package com.tht.hatirlatik;
 
-import android.app.AlarmManager;
 import android.app.Application;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.util.Log;
 
 import androidx.work.Configuration;
-import androidx.work.Constraints;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import com.tht.hatirlatik.database.AppDatabase;
-import com.tht.hatirlatik.receivers.DailyWidgetUpdateReceiver;
 import com.tht.hatirlatik.utils.AdHelper;
 import com.tht.hatirlatik.widget.TaskWidgetProvider;
 import com.tht.hatirlatik.notification.AlarmHelper;
-
-import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
 
 public class HatirlatikApplication extends Application implements Configuration.Provider {
     private static final String TAG = "HatirlatikApplication";
