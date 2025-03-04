@@ -18,7 +18,8 @@
     <string name="delete_task">Görevi Sil</string>
     <string name="update">Güncelle</string>
     <string name="task_updated_active">Görev güncellendi ve aktif duruma getirildi</string>
-    
+    <string name="update">Güncelle</string>
+
     <!-- Calendar View -->
     <string name="calendar">Takvim</string>
     <string name="agenda_calendar">Ajanda Takvim</string>

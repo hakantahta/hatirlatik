@@ -44,7 +44,7 @@ public class TaskFormFragment extends Fragment {
     private static final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", new Locale("tr"));
     
     private static final int[] REMINDER_MINUTES = {5, 10, 15, 30, 60, 120, 180, 360, 720, 1440};
-    
+
     // Düzenlenen görevin ID'si
     private long editingTaskId = -1L;
     private Task editingTask = null;
@@ -213,54 +213,14 @@ public class TaskFormFragment extends Fragment {
         NotificationType notificationType = radioGroupNotificationType.getCheckedRadioButtonId() ==
                 R.id.radio_notification_alarm ? NotificationType.ALARM : NotificationType.NOTIFICATION;
 
-        // Eğer mevcut bir görevi düzenliyorsak, o görevi güncelle
-        if (editingTaskId != -1L && editingTask != null) {
-            // Mevcut görevin özelliklerini güncelle
-            editingTask.setTitle(title);
-            editingTask.setDescription(description);
-            editingTask.setDateTime(dateTime);
-            editingTask.setReminderMinutes(reminderMinutes);
-            editingTask.setNotificationType(notificationType);
-            
-            // Görevi düzenlediğimizde durumunu aktif olarak ayarla
-            editingTask.setCompleted(false);
-            
-            // Görevi güncelle
-            viewModel.updateTask(editingTask);
-            
-            // Kullanıcıya bilgi ver
-            showSnackbar(getString(R.string.task_updated_active));
-        } else {
-            // Yeni görev oluştur
-            Task task = new Task(title, description, dateTime, reminderMinutes, notificationType);
-            viewModel.insertTask(task);
-        }
+        Task task = new Task(title, description, dateTime, reminderMinutes, notificationType);
+        viewModel.insertTask(task);
         
-        // Widget'ı güncelle - birden fazla yöntemle
-        updateWidgets();
+        // Widget'ı yenile
+        com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(requireContext());
         
         // Ana listeye geri dön
         Navigation.findNavController(requireView()).navigateUp();
-    }
-
-    // Widget'ı güncelleme yardımcı metodu
-    private void updateWidgets() {
-        try {
-            // 1. Yöntem: Widget'ı doğrudan güncelle
-            com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(requireContext());
-            
-            // 2. Yöntem: Uygulama sınıfından güncelleme yap
-            if (requireContext().getApplicationContext() instanceof com.tht.hatirlatik.HatirlatikApplication) {
-                com.tht.hatirlatik.HatirlatikApplication app = 
-                    (com.tht.hatirlatik.HatirlatikApplication) requireContext().getApplicationContext();
-                app.updateWidgets();
-            }
-            
-            // 3. Yöntem: Doğrudan tüm widget'ları güncelle
-            com.tht.hatirlatik.widget.TaskWidgetProvider.updateAllWidgets(requireContext());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private boolean validateForm() {
@@ -323,52 +283,6 @@ public class TaskFormFragment extends Fragment {
                 calendar.set(Calendar.MINUTE, now.get(Calendar.MINUTE));
                 updateTimeField();
             }
-            
-            // Düzenlenecek görev ID'si varsa, görevi yükle
-            editingTaskId = getArguments().getLong("taskId", -1L);
-            if (editingTaskId != -1L) {
-                // Başlığı "Görevi Düzenle" olarak değiştir
-                requireActivity().setTitle(R.string.edit_task);
-                
-                // Kaydet butonunun metnini değiştir
-                buttonSave.setText(R.string.update);
-                
-                // Görevi yükle ve form alanlarını doldur
-                viewModel.getTaskById(editingTaskId).observe(getViewLifecycleOwner(), task -> {
-                    if (task != null) {
-                        editingTask = task;
-                        fillFormWithTaskData(task);
-                    }
-                });
-            }
-        }
-    }
-    
-    // Görevi form alanlarına doldur
-    private void fillFormWithTaskData(Task task) {
-        // Başlık ve açıklama
-        editTaskTitle.setText(task.getTitle());
-        editTaskDescription.setText(task.getDescription());
-        
-        // Tarih ve saat
-        calendar.setTime(task.getDateTime());
-        updateDateField();
-        updateTimeField();
-        
-        // Hatırlatma süresi
-        int reminderMinutes = task.getReminderMinutes();
-        for (int i = 0; i < REMINDER_MINUTES.length; i++) {
-            if (REMINDER_MINUTES[i] == reminderMinutes) {
-                dropdownReminderMinutes.setText(String.format(getString(R.string.reminder_minutes_format), REMINDER_MINUTES[i]), false);
-                break;
-            }
-        }
-        
-        // Bildirim türü
-        if (task.getNotificationType() == NotificationType.ALARM) {
-            radioGroupNotificationType.check(R.id.radio_notification_alarm);
-        } else {
-            radioGroupNotificationType.check(R.id.radio_notification_normal);
         }
     }
 } 
