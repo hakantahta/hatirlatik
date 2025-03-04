@@ -232,6 +232,9 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             showNoInternetDialog();
         }
         
+        // Widget'ı güncelle
+        HatirlatikApplication.updateWidgets();
+        
         // Eğer ana ekrandaysak FAB'ları göster, değilse gizle
         if (navController != null && navController.getCurrentDestination() != null) {
             int currentDestinationId = navController.getCurrentDestination().getId();

@@ -53,8 +53,28 @@ public class TaskWidgetProvider extends AppWidgetProvider {
                 return;
             }
             
+            // Tarih veya saat değiştiğinde widget'ı güncelle
+            if (action.equals(Intent.ACTION_DATE_CHANGED) || 
+                action.equals(Intent.ACTION_TIME_CHANGED) || 
+                action.equals(Intent.ACTION_TIMEZONE_CHANGED)) {
+                
+                Log.d(TAG, "onReceive: Tarih veya saat değişikliği algılandı: " + action);
+                
+                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+                int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, TaskWidgetProvider.class));
+                
+                // Widget'ı güncelle
+                onUpdate(context, appWidgetManager, appWidgetIds);
+                
+                // Veri değişikliğini bildir
+                for (int appWidgetId : appWidgetIds) {
+                    appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list_view);
+                }
+                
+                Log.d(TAG, "onReceive: Widget tarih/saat değişikliği sonrası güncellendi");
+            }
             // Widget'ı manuel olarak güncelle
-            if (action.equals(ACTION_REFRESH_WIDGET)) {
+            else if (action.equals(ACTION_REFRESH_WIDGET)) {
                 Log.d(TAG, "onReceive: Manuel güncelleme isteği alındı");
                 
                 AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
@@ -124,10 +144,7 @@ public class TaskWidgetProvider extends AppWidgetProvider {
             }
             // Diğer sistem olayları
             else if (action.equals(Intent.ACTION_BOOT_COMPLETED) || 
-                    action.equals(Intent.ACTION_MY_PACKAGE_REPLACED) ||
-                    action.equals(Intent.ACTION_TIMEZONE_CHANGED) ||
-                    action.equals(Intent.ACTION_TIME_CHANGED) ||
-                    action.equals(Intent.ACTION_DATE_CHANGED)) {
+                    action.equals(Intent.ACTION_MY_PACKAGE_REPLACED)) {
                 
                 Log.d(TAG, "onReceive: Sistem olayı alındı: " + action);
                 

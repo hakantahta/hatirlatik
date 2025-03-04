@@ -82,6 +82,9 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                                 // Bildirim güncelle ve kısa süre sonra kapat
                                 notificationHelper.showTaskNotification(taskId, task.getTitle(), "Görev tamamlandı!");
                                 
+                                // Widget'ı güncelle - iki farklı yöntemle
+                                updateWidgets(context);
+                                
                                 // 1 saniye sonra bildirimi kapat
                                 handler.postDelayed(() -> {
                                     notificationHelper.cancelNotification(taskId);
@@ -147,6 +150,9 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                                 TaskNotificationManager notificationManager = new TaskNotificationManager(context);
                                 notificationManager.scheduleTaskReminder(task);
                                 
+                                // Widget'ı güncelle - iki farklı yöntemle
+                                updateWidgets(context);
+                                
                                 // UI thread'de Toast göster
                                 handler.post(() -> {
                                     Toast.makeText(context, "Görev 10 dakika sonra tekrar hatırlatılacak", 
@@ -183,6 +189,9 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                                 TaskNotificationManager notificationManager = new TaskNotificationManager(context);
                                 notificationManager.scheduleTaskReminder(newTask);
                                 
+                                // Widget'ı güncelle - iki farklı yöntemle
+                                updateWidgets(context);
+                                
                                 handler.post(() -> {
                                     Toast.makeText(context, "Görev 10 dakika sonra tekrar hatırlatılacak", 
                                             Toast.LENGTH_SHORT).show();
@@ -207,5 +216,25 @@ public class NotificationActionReceiver extends BroadcastReceiver {
             // Main thread'de observer'ı ekle
             handler.post(() -> taskLiveData.observeForever(observer));
         });
+    }
+    
+    // Widget'ı güncelleme yardımcı metodu
+    private void updateWidgets(Context context) {
+        try {
+            // 1. Yöntem: Widget'ı doğrudan güncelle
+            com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(context);
+            
+            // 2. Yöntem: Uygulama sınıfından güncelleme yap
+            if (context.getApplicationContext() instanceof com.tht.hatirlatik.HatirlatikApplication) {
+                com.tht.hatirlatik.HatirlatikApplication app = 
+                    (com.tht.hatirlatik.HatirlatikApplication) context.getApplicationContext();
+                app.updateWidgets();
+            }
+            
+            // 3. Yöntem: Doğrudan tüm widget'ları güncelle
+            com.tht.hatirlatik.widget.TaskWidgetProvider.updateAllWidgets(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 } 

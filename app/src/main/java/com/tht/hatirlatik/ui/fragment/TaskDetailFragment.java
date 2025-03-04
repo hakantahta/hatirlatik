@@ -175,8 +175,8 @@ public class TaskDetailFragment extends Fragment {
     private void onCheckBoxClicked() {
         if (currentTask != null) {
             viewModel.updateTaskCompletionStatus(currentTask.getId(), binding.checkboxTask.isChecked());
-            // Widget'ı yenile
-            com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(requireContext());
+            // Widget'ı güncelle - birden fazla yöntemle
+            updateWidgets();
         }
     }
 
@@ -210,13 +210,33 @@ public class TaskDetailFragment extends Fragment {
                 .setPositiveButton(R.string.dialog_yes, (dialog, which) -> {
                     if (currentTask != null) {
                         viewModel.deleteTask(currentTask);
-                        // Widget'ı yenile
-                        com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(requireContext());
+                        // Widget'ı güncelle - birden fazla yöntemle
+                        updateWidgets();
                         Navigation.findNavController(requireView()).navigateUp();
                     }
                 })
                 .setNegativeButton(R.string.dialog_no, null)
                 .show();
+    }
+    
+    // Widget'ı güncelleme yardımcı metodu
+    private void updateWidgets() {
+        try {
+            // 1. Yöntem: Widget'ı doğrudan güncelle
+            com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(requireContext());
+            
+            // 2. Yöntem: Uygulama sınıfından güncelleme yap
+            if (requireContext().getApplicationContext() instanceof com.tht.hatirlatik.HatirlatikApplication) {
+                com.tht.hatirlatik.HatirlatikApplication app = 
+                    (com.tht.hatirlatik.HatirlatikApplication) requireContext().getApplicationContext();
+                app.updateWidgets();
+            }
+            
+            // 3. Yöntem: Doğrudan tüm widget'ları güncelle
+            com.tht.hatirlatik.widget.TaskWidgetProvider.updateAllWidgets(requireContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

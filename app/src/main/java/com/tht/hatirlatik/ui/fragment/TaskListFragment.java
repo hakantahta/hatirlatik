@@ -91,6 +91,11 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
         if (fabAddTask != null) {
             fabAddTask.show();
         }
+        
+        // Uygulama ön plana geldiğinde widget'ı güncelle
+        if (viewModel != null) {
+            viewModel.updateWidgets();
+        }
     }
 
     @Override
@@ -349,6 +354,9 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
         // Direkt olarak durumu güncelle
         viewModel.updateTaskCompletionStatus(task.getId(), isChecked);
         
+        // Widget'ı güncelle
+        viewModel.updateWidgets();
+        
         // Snackbar ile bilgilendirme yap
         String message = String.format("Görev %s olarak işaretlendi", 
             isChecked ? "tamamlandı" : "aktif");
@@ -356,6 +364,8 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
         Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_SHORT)
             .setAction("Geri Al", v -> {
                 viewModel.updateTaskCompletionStatus(task.getId(), !isChecked);
+                // Geri alma durumunda da widget'ı güncelle
+                viewModel.updateWidgets();
             })
             .show();
     }
@@ -367,6 +377,8 @@ public class TaskListFragment extends Fragment implements TaskAdapter.TaskItemLi
                 .setMessage(R.string.dialog_delete_message)
                 .setPositiveButton(R.string.dialog_yes, (dialog, which) -> {
                     viewModel.deleteTask(task);
+                    // Widget'ı güncelle
+                    viewModel.updateWidgets();
                 })
                 .setNegativeButton(R.string.dialog_no, null)
                 .show();

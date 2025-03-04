@@ -302,7 +302,7 @@ public class TaskViewModel extends AndroidViewModel {
     }
 
     // Widget'ı güncelleme
-    private void updateWidgets() {
+    public void updateWidgets() {
         try {
             // Widget'ı doğrudan güncelle
             com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(getApplication());
@@ -313,6 +313,9 @@ public class TaskViewModel extends AndroidViewModel {
                     (com.tht.hatirlatik.HatirlatikApplication) getApplication();
                 app.updateWidgets();
             }
+            
+            // Doğrudan tüm widget'ları güncelle
+            com.tht.hatirlatik.widget.TaskWidgetProvider.updateAllWidgets(getApplication());
         } catch (Exception e) {
             e.printStackTrace();
         }
