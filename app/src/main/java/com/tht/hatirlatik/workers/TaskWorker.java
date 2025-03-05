@@ -1,6 +1,8 @@
 package com.tht.hatirlatik.workers;
 
 import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
@@ -10,8 +12,10 @@ import com.tht.hatirlatik.model.NotificationType;
 import com.tht.hatirlatik.model.Task;
 import com.tht.hatirlatik.notification.AlarmHelper;
 import com.tht.hatirlatik.notification.NotificationHelper;
+import com.tht.hatirlatik.receivers.AlarmReceiver;
 
 public class TaskWorker extends Worker {
+    private static final String TAG = "TaskWorker";
     private final Context context;
 
     public TaskWorker(@NonNull Context context, @NonNull WorkerParameters params) {
@@ -40,34 +44,51 @@ public class TaskWorker extends Worker {
             }
 
             if (taskId != -1) {
-                Task task = new Task(taskTitle, taskDescription, null, 0, notificationType);
-                task.setId(taskId);
-
                 // Bildirim tipine göre işlem yap
                 switch (notificationType) {
                     case NOTIFICATION:
-                        new NotificationHelper(context).showTaskNotification(task);
+                        // Sadece bildirim göster
+                        Task notificationTask = new Task(taskTitle, taskDescription, null, 0, notificationType);
+                        notificationTask.setId(taskId);
+                        new NotificationHelper(context).showTaskNotification(notificationTask);
+                        Log.d(TAG, "doWork: Bildirim gösterildi - taskId: " + taskId);
                         break;
+                        
                     case ALARM:
-                        // Önce mevcut alarmı iptal et (eğer varsa)
+                        // Alarm çal - NotificationHelper üzerinden bildirim gösterme
+                        Log.d(TAG, "doWork: Alarm çalınıyor - taskId: " + taskId);
                         AlarmHelper alarmHelper = new AlarmHelper(context);
-                        alarmHelper.cancelAlarm(task);
-                        // Yeni alarmı planla
-                        alarmHelper.scheduleAlarm(task);
+                        
+                        // Doğrudan AlarmReceiver'ı tetikle
+                        Intent alarmIntent = new Intent(context, AlarmReceiver.class);
+                        alarmIntent.putExtra("taskId", taskId);
+                        alarmIntent.putExtra("taskTitle", taskTitle);
+                        alarmIntent.putExtra("taskDescription", taskDescription);
+                        context.sendBroadcast(alarmIntent);
                         break;
+                        
                     case NOTIFICATION_AND_ALARM:
-                        // Önce mevcut alarmı iptal et (eğer varsa)
-                        AlarmHelper alarmHelper2 = new AlarmHelper(context);
-                        alarmHelper2.cancelAlarm(task);
-                        // Bildirim göster ve yeni alarmı planla
-                        new NotificationHelper(context).showTaskNotification(task);
-                        alarmHelper2.scheduleAlarm(task);
+                        // Hem bildirim göster hem de alarm çal
+                        Task combinedTask = new Task(taskTitle, taskDescription, null, 0, notificationType);
+                        combinedTask.setId(taskId);
+                        
+                        // Bildirim göster
+                        new NotificationHelper(context).showTaskNotification(combinedTask);
+                        
+                        // Alarmı çal
+                        Log.d(TAG, "doWork: Bildirim ve alarm - taskId: " + taskId);
+                        Intent combinedIntent = new Intent(context, AlarmReceiver.class);
+                        combinedIntent.putExtra("taskId", taskId);
+                        combinedIntent.putExtra("taskTitle", taskTitle);
+                        combinedIntent.putExtra("taskDescription", taskDescription);
+                        context.sendBroadcast(combinedIntent);
                         break;
                 }
                 return Result.success();
             }
             return Result.failure();
         } catch (Exception e) {
+            Log.e(TAG, "doWork: Hata oluştu", e);
             e.printStackTrace();
             return Result.failure();
         }

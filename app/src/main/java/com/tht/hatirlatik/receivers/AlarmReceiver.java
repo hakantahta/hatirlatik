@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -12,17 +13,22 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 
 import com.tht.hatirlatik.notification.NotificationHelper;
 import com.tht.hatirlatik.preferences.PreferencesManager;
 
 public class AlarmReceiver extends BroadcastReceiver {
+    private static final String TAG = "AlarmReceiver";
     private static MediaPlayer mediaPlayer;
     private static final String ALARM_TAG = "Hatirlatik:AlarmWakeLock";
     private static PowerManager.WakeLock wakeLock;
+    private static Vibrator vibrator;
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d(TAG, "onReceive: Alarm alındı");
+        
         // Ekranı uyandır
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(
@@ -38,6 +44,8 @@ public class AlarmReceiver extends BroadcastReceiver {
         String taskTitle = intent.getStringExtra("taskTitle");
         String taskDescription = intent.getStringExtra("taskDescription");
         
+        Log.d(TAG, "onReceive: Görev ID: " + taskId + ", Başlık: " + taskTitle);
+        
         // Tercihleri kontrol et
         PreferencesManager preferencesManager = new PreferencesManager(context);
         
@@ -47,16 +55,23 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         // Ses çal
         if (preferencesManager.isNotificationSoundEnabled()) {
+            Log.d(TAG, "onReceive: Alarm sesi çalınıyor");
             playAlarmSound(context);
+        } else {
+            Log.d(TAG, "onReceive: Bildirim sesi kapalı");
         }
 
         // Titreşim
         if (preferencesManager.isNotificationVibrationEnabled()) {
+            Log.d(TAG, "onReceive: Titreşim başlatılıyor");
             vibrate(context);
+        } else {
+            Log.d(TAG, "onReceive: Titreşim kapalı");
         }
 
         // 1 dakika sonra sesi durdur
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            Log.d(TAG, "onReceive: 1 dakika doldu, alarm durduruluyor");
             stopAlarmSound();
             if (wakeLock != null && wakeLock.isHeld()) {
                 wakeLock.release();
@@ -69,7 +84,17 @@ public class AlarmReceiver extends BroadcastReceiver {
             // Eğer zaten çalıyorsa, önce durdur
             stopAlarmSound();
             
+            // Ses seviyesini maksimuma çıkar
+            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            if (audioManager != null) {
+                int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
+                audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxVolume, 0);
+                Log.d(TAG, "playAlarmSound: Ses seviyesi maksimuma ayarlandı: " + maxVolume);
+            }
+            
             Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+            Log.d(TAG, "playAlarmSound: Alarm sesi URI: " + alarmSound);
+            
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setDataSource(context, alarmSound);
             
@@ -80,10 +105,41 @@ public class AlarmReceiver extends BroadcastReceiver {
             
             mediaPlayer.setAudioAttributes(audioAttributes);
             mediaPlayer.setLooping(true);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
+            mediaPlayer.setVolume(1.0f, 1.0f); // Maksimum ses seviyesi
+            
+            // Hazırlık tamamlandığında çalmaya başla
+            mediaPlayer.setOnPreparedListener(mp -> {
+                Log.d(TAG, "playAlarmSound: MediaPlayer hazır, çalma başlıyor");
+                mp.start();
+            });
+            
+            // Hata durumunda log tut
+            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                Log.e(TAG, "playAlarmSound: MediaPlayer hatası: what=" + what + ", extra=" + extra);
+                return false;
+            });
+            
+            mediaPlayer.prepareAsync();
         } catch (Exception e) {
+            Log.e(TAG, "playAlarmSound: Hata oluştu", e);
             e.printStackTrace();
+            
+            // Hata durumunda alternatif yöntem dene
+            try {
+                if (mediaPlayer != null) {
+                    mediaPlayer.release();
+                }
+                
+                mediaPlayer = MediaPlayer.create(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM));
+                if (mediaPlayer != null) {
+                    mediaPlayer.setLooping(true);
+                    mediaPlayer.setVolume(1.0f, 1.0f);
+                    mediaPlayer.start();
+                    Log.d(TAG, "playAlarmSound: Alternatif yöntemle alarm çalınıyor");
+                }
+            } catch (Exception e2) {
+                Log.e(TAG, "playAlarmSound: Alternatif yöntem de başarısız oldu", e2);
+            }
         }
     }
 
@@ -91,29 +147,68 @@ public class AlarmReceiver extends BroadcastReceiver {
         Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         if (vibrator != null && vibrator.hasVibrator()) {
             // Titreşim paterni: 0ms bekleme, 500ms titreşim, 250ms bekleme, 500ms titreşim
-            long[] pattern = {0, 500, 250, 500};
+            long[] pattern = {0, 500, 250, 500, 250, 500, 250, 500};
             
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1));
-            } else {
-                vibrator.vibrate(pattern, -1);
+            try {
+                // Statik değişkene atama yap
+                AlarmReceiver.vibrator = vibrator;
+                
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createWaveform(pattern, 0)); // 0 indeksi ile tekrarla
+                    Log.d(TAG, "vibrate: Android O+ için titreşim başlatıldı");
+                } else {
+                    vibrator.vibrate(pattern, 0); // 0 indeksi ile tekrarla
+                    Log.d(TAG, "vibrate: Eski Android sürümü için titreşim başlatıldı");
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "vibrate: Titreşim başlatılırken hata oluştu", e);
             }
+        } else {
+            Log.w(TAG, "vibrate: Cihazda titreşim özelliği yok veya erişilemiyor");
         }
     }
     
     // Alarm sesini durdur - statik metot olarak dışarıdan erişilebilir
     public static void stopAlarmSound() {
+        Log.d(TAG, "stopAlarmSound: Alarm sesi durduruluyor");
         if (mediaPlayer != null) {
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.stop();
+            try {
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                    Log.d(TAG, "stopAlarmSound: MediaPlayer durduruldu");
+                }
+                mediaPlayer.release();
+                mediaPlayer = null;
+                Log.d(TAG, "stopAlarmSound: MediaPlayer serbest bırakıldı");
+            } catch (Exception e) {
+                Log.e(TAG, "stopAlarmSound: Hata oluştu", e);
             }
-            mediaPlayer.release();
-            mediaPlayer = null;
         }
         
+        // Titreşimi de durdur
+        stopVibration();
+        
         if (wakeLock != null && wakeLock.isHeld()) {
-            wakeLock.release();
-            wakeLock = null;
+            try {
+                wakeLock.release();
+                wakeLock = null;
+                Log.d(TAG, "stopAlarmSound: WakeLock serbest bırakıldı");
+            } catch (Exception e) {
+                Log.e(TAG, "stopAlarmSound: WakeLock serbest bırakılırken hata oluştu", e);
+            }
+        }
+    }
+    
+    // Titreşimi durdur - statik metot olarak dışarıdan erişilebilir
+    public static void stopVibration() {
+        Log.d(TAG, "stopVibration: Titreşim durduruluyor");
+        if (vibrator != null) {
+            try {
+                vibrator.cancel();
+                Log.d(TAG, "stopVibration: Titreşim durduruldu");
+            } catch (Exception e) {
+                Log.e(TAG, "stopVibration: Titreşim durdurulurken hata oluştu", e);
+            }
         }
     }
 } 

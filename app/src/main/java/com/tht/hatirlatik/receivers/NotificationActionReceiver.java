@@ -71,7 +71,11 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                 @Override
                 public void onChanged(Task task) {
                     if (task != null) {
-                        // Alarmı durdur
+                        // Alarmı ve titreşimi hemen durdur
+                        AlarmReceiver.stopAlarmSound();
+                        AlarmReceiver.stopVibration();
+                        
+                        // Alarmı iptal et
                         alarmHelper.cancelAlarm(task);
                         
                         // Görevi tamamlandı olarak işaretle
@@ -79,22 +83,17 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                         taskRepository.updateTask(task, new TaskRepository.OnTaskOperationCallback() {
                             @Override
                             public void onSuccess(long taskId) {
-                                // Bildirim güncelle ve kısa süre sonra kapat
-                                notificationHelper.showTaskNotification(taskId, task.getTitle(), "Görev tamamlandı!");
+                                // Bildirimi hemen kapat
+                                notificationHelper.cancelNotification(taskId);
                                 
                                 // Widget'ı güncelle - iki farklı yöntemle
                                 updateWidgets(context);
                                 
-                                // 1 saniye sonra bildirimi kapat
-                                handler.postDelayed(() -> {
-                                    notificationHelper.cancelNotification(taskId);
-                                    
-                                    // UI thread'de Toast göster
-                                    handler.post(() -> {
-                                        Toast.makeText(context, "Görev tamamlandı: " + task.getTitle(), 
-                                                Toast.LENGTH_SHORT).show();
-                                    });
-                                }, 1000);
+                                // UI thread'de Toast göster
+                                handler.post(() -> {
+                                    Toast.makeText(context, "Görev tamamlandı: " + task.getTitle(), 
+                                            Toast.LENGTH_SHORT).show();
+                                });
                             }
                             
                             @Override

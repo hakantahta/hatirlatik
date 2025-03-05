@@ -62,5 +62,9 @@ public class AlarmHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
         alarmManager.cancel(pendingIntent);
+        
+        // Çalan alarmı ve titreşimi durdur
+        AlarmReceiver.stopAlarmSound();
+        AlarmReceiver.stopVibration();
     }
 } 

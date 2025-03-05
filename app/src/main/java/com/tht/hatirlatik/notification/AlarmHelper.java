@@ -28,11 +28,22 @@ public class AlarmHelper {
 
     public void scheduleAlarm(Task task) {
         // Alarm zamanını hesapla (görev zamanından hatırlatma süresini çıkar)
-        long taskTime = task.getDateTime().getTime();
+        long taskTime = task.getDateTime() != null ? task.getDateTime().getTime() : System.currentTimeMillis();
         long alarmTime = taskTime - (task.getReminderMinutes() * 60 * 1000L);
+        
+        Log.d(TAG, "scheduleAlarm: Görev zamanı: " + new java.util.Date(taskTime).toString());
+        Log.d(TAG, "scheduleAlarm: Alarm zamanı: " + new java.util.Date(alarmTime).toString());
+        Log.d(TAG, "scheduleAlarm: Şu anki zaman: " + new java.util.Date(System.currentTimeMillis()).toString());
+        Log.d(TAG, "scheduleAlarm: Hatırlatma süresi: " + task.getReminderMinutes() + " dakika");
 
-        // Eğer alarm zamanı geçmişse, alarm kurma
-        if (alarmTime <= System.currentTimeMillis()) {
+        // Eğer alarm zamanı geçmişse veya çok yakınsa (5 saniyeden az), hemen alarmı tetikle
+        if (alarmTime <= System.currentTimeMillis() + 5000) {
+            Log.d(TAG, "scheduleAlarm: Alarm zamanı geçmiş veya çok yakın, hemen tetikleniyor");
+            Intent intent = new Intent(context, AlarmReceiver.class);
+            intent.putExtra("taskId", task.getId());
+            intent.putExtra("taskTitle", task.getTitle());
+            intent.putExtra("taskDescription", task.getDescription());
+            context.sendBroadcast(intent);
             return;
         }
 
@@ -52,27 +63,35 @@ public class AlarmHelper {
         );
 
         // Android sürümüne göre uygun alarm tipini seç
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && 
-            !alarmManager.canScheduleExactAlarms()) {
-            // Android 12 ve üzeri için exact alarm izni yoksa
-            alarmManager.setAlarmClock(
-                new AlarmManager.AlarmClockInfo(alarmTime, pendingIntent),
-                pendingIntent
-            );
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Android 6 ve üzeri için
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                alarmTime,
-                pendingIntent
-            );
-        } else {
-            // Android 6 öncesi için
-            alarmManager.setExact(
-                AlarmManager.RTC_WAKEUP,
-                alarmTime,
-                pendingIntent
-            );
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && 
+                !alarmManager.canScheduleExactAlarms()) {
+                // Android 12 ve üzeri için exact alarm izni yoksa
+                Log.d(TAG, "scheduleAlarm: Android 12+ için setAlarmClock kullanılıyor");
+                alarmManager.setAlarmClock(
+                    new AlarmManager.AlarmClockInfo(alarmTime, pendingIntent),
+                    pendingIntent
+                );
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // Android 6 ve üzeri için
+                Log.d(TAG, "scheduleAlarm: Android 6+ için setExactAndAllowWhileIdle kullanılıyor");
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    alarmTime,
+                    pendingIntent
+                );
+            } else {
+                // Android 6 öncesi için
+                Log.d(TAG, "scheduleAlarm: Android 6 öncesi için setExact kullanılıyor");
+                alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    alarmTime,
+                    pendingIntent
+                );
+            }
+            Log.d(TAG, "scheduleAlarm: Alarm başarıyla kuruldu. Görev ID: " + task.getId());
+        } catch (Exception e) {
+            Log.e(TAG, "scheduleAlarm: Alarm kurulurken hata oluştu", e);
         }
     }
 
@@ -86,8 +105,11 @@ public class AlarmHelper {
         );
         alarmManager.cancel(pendingIntent);
         
-        // Çalan alarmı durdur
+        // Çalan alarmı ve titreşimi durdur
         AlarmReceiver.stopAlarmSound();
+        AlarmReceiver.stopVibration();
+        
+        Log.d(TAG, "cancelAlarm: Alarm iptal edildi. Görev ID: " + task.getId());
     }
 
     /**
