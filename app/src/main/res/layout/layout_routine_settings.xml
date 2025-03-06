@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tv_routine_settings_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/routine_settings"
+        android:textAppearance="?attr/textAppearanceSubtitle1"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switch_is_routine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/is_routine"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_routine_settings_title"
+        android:layout_marginTop="8dp" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_routine_options"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/switch_is_routine">
+
+        <TextView
+            android:id="@+id/tv_repeat_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/routine_type"
+            android:textAppearance="?attr/textAppearanceBody1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <RadioGroup
+            android:id="@+id/radio_group_repeat_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_repeat_type">
+
+            <RadioButton
+                android:id="@+id/radioNone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_no_repeat"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/radioDaily"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_daily" />
+
+            <RadioButton
+                android:id="@+id/radioWeekly"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_weekly" />
+
+            <RadioButton
+                android:id="@+id/radioMonthly"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_monthly" />
+
+            <RadioButton
+                android:id="@+id/radioWeekdays"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_weekdays" />
+
+            <RadioButton
+                android:id="@+id/radioWeekends"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_weekends" />
+
+            <RadioButton
+                android:id="@+id/radioCustom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_custom" />
+        </RadioGroup>
+
+        <!-- Haftalık Ayarlar -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_weekly_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/radio_group_repeat_type">
+
+            <TextView
+                android:id="@+id/tv_week_days"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_days_of_week"
+                android:textAppearance="?attr/textAppearanceBody1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_week_days"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:singleSelection="false"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_week_days">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipMonday"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/routine_day_monday" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTuesday"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/routine_day_tuesday" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipWednesday"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/routine_day_wednesday" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipThursday"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/routine_day_thursday" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipFriday"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/routine_day_friday" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipSaturday"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/routine_day_saturday" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipSunday"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/routine_day_sunday" />
+            </com.google.android.material.chip.ChipGroup>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Aylık Ayarlar -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_monthly_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_weekly_settings">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layout_month_days"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/routine_month_days_hint"
+                app:helperText="@string/routine_month_days_helper"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edit_text_month_days"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Günlük Ayarlar -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_daily_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_monthly_settings">
+
+            <TextView
+                android:id="@+id/tv_times_per_day_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_times_per_day_label"
+                android:textAppearance="?attr/textAppearanceBody1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/text_view_times_per_day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1 kez"
+                android:layout_marginStart="8dp"
+                app:layout_constraintStart_toEndOf="@id/tv_times_per_day_label"
+                app:layout_constraintTop_toTopOf="@id/tv_times_per_day_label"
+                app:layout_constraintBottom_toBottomOf="@id/tv_times_per_day_label" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slider_times_per_day"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:valueFrom="1"
+                android:valueTo="10"
+                android:stepSize="1"
+                android:value="1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_times_per_day_label" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_interval_hours"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/slider_times_per_day">
+
+                <TextView
+                    android:id="@+id/tv_interval_hours_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/routine_interval_hours_label"
+                    android:textAppearance="?attr/textAppearanceBody1"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/text_view_interval_hours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1 saat"
+                    android:layout_marginStart="8dp"
+                    app:layout_constraintStart_toEndOf="@id/tv_interval_hours_label"
+                    app:layout_constraintTop_toTopOf="@id/tv_interval_hours_label"
+                    app:layout_constraintBottom_toBottomOf="@id/tv_interval_hours_label" />
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/slider_interval_hours"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:valueFrom="1"
+                    android:valueTo="12"
+                    android:stepSize="1"
+                    android:value="1"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_interval_hours_label" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/tv_time_range_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_time_range_label"
+                android:textAppearance="?attr/textAppearanceBody1"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/layout_interval_hours" />
+
+            <LinearLayout
+                android:id="@+id/layout_time_range"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_time_range_label">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layout_start_time"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:hint="@string/routine_start_time">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_text_start_time"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:focusable="false"
+                        android:clickable="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layout_end_time"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:hint="@string/routine_end_time">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_text_end_time"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:focusable="false"
+                        android:clickable="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Özel Ayarlar -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_custom_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_daily_settings">
+
+            <TextView
+                android:id="@+id/tv_date_range_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/routine_date_range_label"
+                android:textAppearance="?attr/textAppearanceBody1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/layout_date_range"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_date_range_label">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layout_start_date"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:hint="@string/routine_start_date">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_text_start_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:focusable="false"
+                        android:clickable="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layout_end_date"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:hint="@string/routine_end_date">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_text_end_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:focusable="false"
+                        android:clickable="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout> 

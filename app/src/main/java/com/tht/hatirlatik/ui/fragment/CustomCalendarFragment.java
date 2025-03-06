@@ -1,6 +1,7 @@
 package com.tht.hatirlatik.ui.fragment;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,6 +28,8 @@ import com.kizitonwose.calendarview.ui.DayBinder;
 import com.kizitonwose.calendarview.ui.MonthHeaderFooterBinder;
 import com.kizitonwose.calendarview.ui.ViewContainer;
 import com.tht.hatirlatik.R;
+import com.tht.hatirlatik.model.RepeatType;
+import com.tht.hatirlatik.model.RoutineSettings;
 import com.tht.hatirlatik.model.Task;
 import com.tht.hatirlatik.ui.adapter.TaskAdapter;
 import com.tht.hatirlatik.viewmodel.TaskViewModel;
@@ -287,9 +290,21 @@ public class CustomCalendarFragment extends Fragment implements TaskAdapter.Task
     private void setupObservers() {
         viewModel.getTasks().observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) {
+                // Tüm görevleri al (rutin görevler dahil)
+                List<Task> allTasks = new ArrayList<>(tasks);
+                
+                // Rutin görevleri de ekle
+                for (Task task : tasks) {
+                    if (task.getRepeatType() != null && task.getRepeatType() != RepeatType.NONE) {
+                        // Rutin görevleri ekle
+                        if (!allTasks.contains(task)) {
+                            allTasks.add(task);
+                        }
+                    }
+                }
+                
                 // Görevleri işle ve takvimde işaretle
-                updateCalendarWithTasks(tasks);
-                filterTasksForSelectedDate();
+                updateCalendarWithTasks(allTasks);
                 progressBar.setVisibility(View.GONE);
             }
         });
@@ -309,8 +324,20 @@ public class CustomCalendarFragment extends Fragment implements TaskAdapter.Task
         // Görev durumu değiştiğinde listeyi güncelle
         viewModel.getTaskListLiveData().observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) {
-                updateCalendarWithTasks(tasks);
-                filterTasksForSelectedDate();
+                // Tüm görevleri al (rutin görevler dahil)
+                List<Task> allTasks = new ArrayList<>(tasks);
+                
+                // Rutin görevleri de ekle
+                for (Task task : tasks) {
+                    if (task.getRepeatType() != null && task.getRepeatType() != RepeatType.NONE) {
+                        // Rutin görevleri ekle
+                        if (!allTasks.contains(task)) {
+                            allTasks.add(task);
+                        }
+                    }
+                }
+                
+                updateCalendarWithTasks(allTasks);
             }
         });
         
@@ -319,6 +346,8 @@ public class CustomCalendarFragment extends Fragment implements TaskAdapter.Task
             if (taskId != null && taskId > 0) {
                 // Takvimi yenile
                 calendarView.notifyCalendarChanged();
+                // Seçili tarihe göre görevleri filtrele
+                filterTasksForSelectedDate();
             }
         });
     }
@@ -327,6 +356,8 @@ public class CustomCalendarFragment extends Fragment implements TaskAdapter.Task
         // Görev listelerini temizle
         datesWithTasks.clear();
         datesWithCompletedTasks.clear();
+        
+        Log.d("CustomCalendarFragment", "updateCalendarWithTasks başladı: " + tasks.size() + " görev var");
         
         // Görevleri tarihe göre grupla
         Map<LocalDate, List<Task>> tasksByDate = new HashMap<>();
@@ -338,10 +369,19 @@ public class CustomCalendarFragment extends Fragment implements TaskAdapter.Task
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate();
             
-            if (!tasksByDate.containsKey(taskDate)) {
-                tasksByDate.put(taskDate, new ArrayList<>());
+            Log.d("CustomCalendarFragment", "Görev inceleniyor: " + task.getTitle() + ", tarih: " + taskDate + ", rutin tipi: " + task.getRepeatType());
+            
+            // Rutin görevleri kontrol et ve ilgili tarihleri ekle
+            if (task.getRepeatType() != null && task.getRepeatType() != RepeatType.NONE) {
+                // Rutin görev için tüm ilgili tarihleri ekle
+                addRoutineTaskDates(task, tasksByDate);
+            } else {
+                // Normal görev için sadece kendi tarihini ekle
+                if (!tasksByDate.containsKey(taskDate)) {
+                    tasksByDate.put(taskDate, new ArrayList<>());
+                }
+                tasksByDate.get(taskDate).add(task);
             }
-            tasksByDate.get(taskDate).add(task);
         }
         
         // Her tarih için görev durumunu kontrol et
@@ -364,14 +404,284 @@ public class CustomCalendarFragment extends Fragment implements TaskAdapter.Task
             if (allCompleted && !tasksForDate.isEmpty()) {
                 // Tüm görevler tamamlandıysa kırmızı nokta
                 datesWithCompletedTasks.add(date);
+                Log.d("CustomCalendarFragment", "Tamamlanmış görevler için tarih eklendi: " + date);
             } else {
                 // Tamamlanmamış görevler varsa yeşil nokta
                 datesWithTasks.add(date);
+                Log.d("CustomCalendarFragment", "Tamamlanmamış görevler için tarih eklendi: " + date);
             }
         }
         
         // Takvimi güncelle
         calendarView.notifyCalendarChanged();
+        
+        // Seçili tarihe göre görevleri filtrele
+        filterTasksForSelectedDate();
+    }
+
+    /**
+     * Rutin görevler için ilgili tarihleri ekler
+     * @param task Rutin görev
+     * @param tasksByDate Tarih-görev haritası
+     */
+    private void addRoutineTaskDates(Task task, Map<LocalDate, List<Task>> tasksByDate) {
+        // Görevin başlangıç tarihini al
+        LocalDate taskDate = task.getDateTime().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        
+        // Rutin ayarlarını senkron olarak al
+        RoutineSettings routineSettings = viewModel.getRoutineSettingsByTaskIdSync(task.getId());
+        if (routineSettings == null) {
+            Log.e("CustomCalendarFragment", "Rutin ayarları bulunamadı: taskId=" + task.getId());
+            return;
+        }
+        
+        Log.d("CustomCalendarFragment", "Rutin görev işleniyor: " + task.getTitle() + ", rutin tipi: " + routineSettings.getRepeatType());
+        
+        // Tekrarlama tipine göre tarihleri ekle
+        switch (routineSettings.getRepeatType()) {
+            case DAILY:
+                // Her gün için 30 gün boyunca ekle
+                addDailyTaskDates(task, taskDate, tasksByDate, 30);
+                break;
+                
+            case WEEKLY:
+                // Haftanın belirli günleri için 8 hafta boyunca ekle
+                addWeeklyTaskDates(task, taskDate, routineSettings.getWeekDays(), tasksByDate, 8);
+                break;
+                
+            case MONTHLY:
+                // Ayın belirli günleri için 6 ay boyunca ekle
+                addMonthlyTaskDates(task, taskDate, routineSettings.getMonthDays(), tasksByDate, 6);
+                break;
+                
+            case WEEKDAYS:
+                // Hafta içi günler için 4 hafta boyunca ekle
+                Log.d("CustomCalendarFragment", "Hafta içi görev için tarihleri ekliyorum: " + task.getTitle());
+                addWeekdaysTaskDates(task, taskDate, tasksByDate, 4);
+                break;
+                
+            case WEEKENDS:
+                // Hafta sonu günler için 4 hafta boyunca ekle
+                addWeekendsTaskDates(task, taskDate, tasksByDate, 4);
+                break;
+                
+            case CUSTOM:
+                // Özel tekrarlama ayarları için ekle
+                addCustomTaskDates(task, taskDate, routineSettings, tasksByDate);
+                break;
+        }
+    }
+    
+    /**
+     * Günlük görevler için tarihleri ekler
+     */
+    private void addDailyTaskDates(Task task, LocalDate startDate, Map<LocalDate, List<Task>> tasksByDate, int days) {
+        for (int i = 0; i < days; i++) {
+            LocalDate date = startDate.plusDays(i);
+            addTaskToDate(task, date, tasksByDate);
+        }
+    }
+    
+    /**
+     * Haftalık görevler için tarihleri ekler
+     */
+    private void addWeeklyTaskDates(Task task, LocalDate startDate, String weekDaysStr, 
+                                   Map<LocalDate, List<Task>> tasksByDate, int weeks) {
+        // Varsayılan olarak görevin oluşturulduğu günü kullan
+        int[] weekDays = {startDate.getDayOfWeek().getValue()};
+        
+        // Eğer belirli günler belirtilmişse, onları kullan
+        if (weekDaysStr != null && !weekDaysStr.isEmpty()) {
+            String[] days = weekDaysStr.split(",");
+            weekDays = new int[days.length];
+            
+            for (int i = 0; i < days.length; i++) {
+                try {
+                    weekDays[i] = Integer.parseInt(days[i].trim());
+                } catch (NumberFormatException e) {
+                    weekDays[i] = startDate.getDayOfWeek().getValue();
+                }
+            }
+        }
+        
+        // Her hafta için belirtilen günleri ekle
+        for (int week = 0; week < weeks; week++) {
+            for (int day : weekDays) {
+                // Haftanın gününü bul (1=Pazartesi, 7=Pazar)
+                LocalDate date = startDate.with(DayOfWeek.of(day)).plusWeeks(week);
+                
+                // Eğer başlangıç tarihinden önceyse, bir sonraki haftaya geç
+                if (date.isBefore(startDate)) {
+                    date = date.plusWeeks(1);
+                }
+                
+                addTaskToDate(task, date, tasksByDate);
+            }
+        }
+    }
+    
+    /**
+     * Aylık görevler için tarihleri ekler
+     */
+    private void addMonthlyTaskDates(Task task, LocalDate startDate, String monthDaysStr, 
+                                    Map<LocalDate, List<Task>> tasksByDate, int months) {
+        // Varsayılan olarak görevin oluşturulduğu günü kullan
+        int[] monthDays = {startDate.getDayOfMonth()};
+        
+        // Eğer belirli günler belirtilmişse, onları kullan
+        if (monthDaysStr != null && !monthDaysStr.isEmpty()) {
+            String[] days = monthDaysStr.split(",");
+            monthDays = new int[days.length];
+            
+            for (int i = 0; i < days.length; i++) {
+                try {
+                    monthDays[i] = Integer.parseInt(days[i].trim());
+                } catch (NumberFormatException e) {
+                    monthDays[i] = startDate.getDayOfMonth();
+                }
+            }
+        }
+        
+        // Her ay için belirtilen günleri ekle
+        for (int month = 0; month < months; month++) {
+            for (int day : monthDays) {
+                try {
+                    // Ayın gününü bul
+                    LocalDate date = startDate.withDayOfMonth(day).plusMonths(month);
+                    
+                    // Eğer başlangıç tarihinden önceyse, bir sonraki aya geç
+                    if (date.isBefore(startDate)) {
+                        date = date.plusMonths(1);
+                    }
+                    
+                    addTaskToDate(task, date, tasksByDate);
+                } catch (Exception e) {
+                    // Geçersiz tarih (örn. 31 Şubat) durumunda atla
+                    continue;
+                }
+            }
+        }
+    }
+    
+    /**
+     * Hafta içi görevler için tarihleri ekler
+     */
+    private void addWeekdaysTaskDates(Task task, LocalDate startDate, 
+                                     Map<LocalDate, List<Task>> tasksByDate, int weeks) {
+        // Hafta içi günler (1=Pazartesi, 5=Cuma)
+        int[] weekDays = {1, 2, 3, 4, 5};
+        
+        // Bugünün tarihini al
+        LocalDate today = LocalDate.now();
+        
+        Log.d("CustomCalendarFragment", "addWeekdaysTaskDates başladı: task=" + task.getTitle() + ", startDate=" + startDate);
+        
+        // Başlangıç tarihini hafta başına ayarla (Pazartesi)
+        LocalDate weekStart = startDate;
+        if (startDate.getDayOfWeek().getValue() > 5) {
+            // Eğer hafta sonu ise, bir sonraki haftanın Pazartesi'sine ayarla
+            weekStart = startDate.plusDays(8 - startDate.getDayOfWeek().getValue());
+        } else {
+            // Eğer hafta içi ise, bu haftanın Pazartesi'sine ayarla
+            weekStart = startDate.minusDays(startDate.getDayOfWeek().getValue() - 1);
+        }
+        
+        Log.d("CustomCalendarFragment", "Hafta başlangıcı: " + weekStart);
+        
+        // Her hafta için hafta içi günleri ekle
+        for (int week = 0; week < weeks; week++) {
+            for (int day : weekDays) {
+                // Haftanın gününü bul
+                LocalDate date = weekStart.plusDays(day - 1).plusWeeks(week);
+                
+                Log.d("CustomCalendarFragment", "Kontrol edilen tarih: " + date + ", bugün: " + today);
+                
+                // Eğer tarih bugünden önceyse ve aynı hafta değilse, atla
+                if (date.isBefore(today) && !date.equals(today) && 
+                    !(date.getYear() == today.getYear() && date.get(WeekFields.of(Locale.getDefault()).weekOfYear()) == today.get(WeekFields.of(Locale.getDefault()).weekOfYear()))) {
+                    Log.d("CustomCalendarFragment", "Tarih atlandı: " + date);
+                    continue;
+                }
+                
+                // Görevi tarihe ekle
+                addTaskToDate(task, date, tasksByDate);
+                
+                // Log ekle
+                Log.d("CustomCalendarFragment", "Hafta içi görev eklendi: " + task.getTitle() + ", tarih: " + date);
+            }
+        }
+    }
+    
+    /**
+     * Hafta sonu görevler için tarihleri ekler
+     */
+    private void addWeekendsTaskDates(Task task, LocalDate startDate, 
+                                     Map<LocalDate, List<Task>> tasksByDate, int weeks) {
+        // Hafta sonu günler (6=Cumartesi, 7=Pazar)
+        int[] weekDays = {6, 7};
+        
+        // Her hafta için hafta sonu günleri ekle
+        for (int week = 0; week < weeks; week++) {
+            for (int day : weekDays) {
+                // Haftanın gününü bul
+                LocalDate date = startDate.with(DayOfWeek.of(day)).plusWeeks(week);
+                
+                // Eğer başlangıç tarihinden önceyse, bir sonraki haftaya geç
+                if (date.isBefore(startDate)) {
+                    date = date.plusWeeks(1);
+                }
+                
+                addTaskToDate(task, date, tasksByDate);
+            }
+        }
+    }
+    
+    /**
+     * Özel görevler için tarihleri ekler
+     */
+    private void addCustomTaskDates(Task task, LocalDate startDate, RoutineSettings routineSettings,
+                                   Map<LocalDate, List<Task>> tasksByDate) {
+        // Hem haftalık hem de aylık ayarları kontrol et
+        if (routineSettings.getWeekDays() != null && !routineSettings.getWeekDays().isEmpty()) {
+            addWeeklyTaskDates(task, startDate, routineSettings.getWeekDays(), tasksByDate, 4);
+        }
+        
+        if (routineSettings.getMonthDays() != null && !routineSettings.getMonthDays().isEmpty()) {
+            addMonthlyTaskDates(task, startDate, routineSettings.getMonthDays(), tasksByDate, 3);
+        }
+        
+        // Eğer her ikisi de yoksa, günlük olarak ekle
+        if ((routineSettings.getWeekDays() == null || routineSettings.getWeekDays().isEmpty()) && 
+            (routineSettings.getMonthDays() == null || routineSettings.getMonthDays().isEmpty())) {
+            addDailyTaskDates(task, startDate, tasksByDate, 14);
+        }
+    }
+    
+    /**
+     * Belirli bir tarihe görev ekler
+     */
+    private void addTaskToDate(Task task, LocalDate date, Map<LocalDate, List<Task>> tasksByDate) {
+        if (!tasksByDate.containsKey(date)) {
+            tasksByDate.put(date, new ArrayList<>());
+        }
+        
+        // Aynı görevi tekrar eklememek için kontrol et
+        boolean taskExists = false;
+        for (Task existingTask : tasksByDate.get(date)) {
+            if (existingTask.getId() == task.getId()) {
+                taskExists = true;
+                break;
+            }
+        }
+        
+        if (!taskExists) {
+            tasksByDate.get(date).add(task);
+            Log.d("CustomCalendarFragment", "Görev tarihe eklendi: " + task.getTitle() + ", tarih: " + date);
+        } else {
+            Log.d("CustomCalendarFragment", "Görev zaten var, eklenmedi: " + task.getTitle() + ", tarih: " + date);
+        }
     }
 
     private void updateSelectedDateUI() {
@@ -387,6 +697,8 @@ public class CustomCalendarFragment extends Fragment implements TaskAdapter.Task
             return;
         }
 
+        Log.d("CustomCalendarFragment", "filterTasksForSelectedDate başladı: seçili tarih=" + selectedDate + ", toplam görev sayısı=" + allTasks.size());
+
         // Seçilen tarih için başlangıç ve bitiş zamanlarını ayarla
         LocalDate startDate = selectedDate;
         LocalDate endDate = selectedDate.plusDays(1);
@@ -395,23 +707,258 @@ public class CustomCalendarFragment extends Fragment implements TaskAdapter.Task
         Date endDateTime = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         // Seçilen tarih için görevleri filtrele
-        List<Task> tasksForDate = allTasks.stream()
+        List<Task> tasksForDate = new ArrayList<>();
+        
+        // Normal görevleri filtrele
+        List<Task> normalTasksForDate = allTasks.stream()
                 .filter(task -> {
                     Date taskDate = task.getDateTime();
                     return taskDate != null &&
                             !taskDate.before(startDateTime) &&
-                            taskDate.before(endDateTime);
+                            taskDate.before(endDateTime) &&
+                            (task.getRepeatType() == null || task.getRepeatType() == RepeatType.NONE);
                 })
                 .collect(Collectors.toList());
+        
+        Log.d("CustomCalendarFragment", "Normal görev sayısı: " + normalTasksForDate.size());
+        
+        // Normal görevleri listeye ekle
+        tasksForDate.addAll(normalTasksForDate);
+        
+        // Rutin görevleri filtrele ve ekle
+        List<Task> routineTasks = new ArrayList<>();
+        for (Task task : allTasks) {
+            if (task.getRepeatType() != null && task.getRepeatType() != RepeatType.NONE) {
+                Log.d("CustomCalendarFragment", "Rutin görev kontrol ediliyor: " + task.getTitle() + ", rutin tipi: " + task.getRepeatType());
+                
+                // Rutin görev için kontrol et
+                boolean isForSelectedDate = isTaskForSelectedDate(task, selectedDate);
+                Log.d("CustomCalendarFragment", "Görev seçili tarih için geçerli mi: " + isForSelectedDate);
+                
+                if (isForSelectedDate) {
+                    // Görevin kopyasını oluştur ve tarihini seçilen tarihe ayarla
+                    Task taskCopy = new Task();
+                    taskCopy.setId(task.getId());
+                    taskCopy.setTitle(task.getTitle());
+                    taskCopy.setDescription(task.getDescription());
+                    taskCopy.setCompleted(task.isCompleted());
+                    taskCopy.setNotificationType(task.getNotificationType());
+                    taskCopy.setRepeatType(task.getRepeatType());
+                    taskCopy.setReminderMinutes(task.getReminderMinutes());
+                    
+                    // Tarihi seçilen tarihe ayarla
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(task.getDateTime());
+                    
+                    Calendar selectedCalendar = Calendar.getInstance();
+                    selectedCalendar.set(selectedDate.getYear(), selectedDate.getMonthValue() - 1, selectedDate.getDayOfMonth(),
+                                        calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), 0);
+                    
+                    taskCopy.setDateTime(selectedCalendar.getTime());
+                    
+                    routineTasks.add(taskCopy);
+                    Log.d("CustomCalendarFragment", "Rutin görev eklendi: " + taskCopy.getTitle() + ", tarih: " + selectedCalendar.getTime());
+                }
+            }
+        }
+        
+        Log.d("CustomCalendarFragment", "Rutin görev sayısı: " + routineTasks.size());
+        
+        // Rutin görevleri listeye ekle
+        tasksForDate.addAll(routineTasks);
+        
+        // Görevleri tarihe göre sırala
+        tasksForDate.sort((t1, t2) -> t1.getDateTime().compareTo(t2.getDateTime()));
+
+        Log.d("CustomCalendarFragment", "Toplam görev sayısı: " + tasksForDate.size());
 
         if (tasksForDate.isEmpty()) {
             showEmptyState();
+            Log.d("CustomCalendarFragment", "Boş durum gösteriliyor");
         } else {
             hideEmptyState();
             // Yeni bir liste oluştur ve adapter'a gönder
             adapter.submitList(null);
             adapter.submitList(new ArrayList<>(tasksForDate));
+            Log.d("CustomCalendarFragment", "Görevler adapter'a gönderildi");
         }
+    }
+
+    /**
+     * Bir görevin belirli bir tarih için geçerli olup olmadığını kontrol eder
+     */
+    private boolean isTaskForSelectedDate(Task task, LocalDate date) {
+        try {
+            // Görevin tarihini LocalDate'e dönüştür
+            LocalDate taskDate = task.getDateTime().toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+            
+            Log.d("CustomCalendarFragment", "isTaskForSelectedDate: task=" + task.getTitle() + ", taskDate=" + taskDate + ", selectedDate=" + date + ", repeatType=" + task.getRepeatType());
+            
+            // Eğer görev rutin değilse, sadece kendi tarihinde göster
+            if (task.getRepeatType() == null || task.getRepeatType() == RepeatType.NONE) {
+                return taskDate.equals(date);
+            }
+            
+            // Rutin görev için rutin ayarlarını al
+            RoutineSettings routineSettings = viewModel.getRoutineSettingsByTaskIdSync(task.getId());
+            if (routineSettings == null) {
+                Log.e("CustomCalendarFragment", "Rutin ayarları bulunamadı: taskId=" + task.getId());
+                return taskDate.equals(date);
+            }
+            
+            Log.d("CustomCalendarFragment", "Rutin tipi: " + routineSettings.getRepeatType());
+            
+            // Bugünün tarihini al
+            LocalDate today = LocalDate.now();
+            
+            // Tekrarlama tipine göre kontrol et
+            boolean result = false;
+            switch (routineSettings.getRepeatType()) {
+                case DAILY:
+                    // Her gün için geçerli
+                    result = true;
+                    break;
+                    
+                case WEEKLY:
+                    // Haftanın belirli günleri için geçerli
+                    result = isWeeklyTaskForDate(routineSettings.getWeekDays(), date, taskDate);
+                    break;
+                    
+                case MONTHLY:
+                    // Ayın belirli günleri için geçerli
+                    result = isMonthlyTaskForDate(routineSettings.getMonthDays(), date);
+                    break;
+                    
+                case WEEKDAYS:
+                    // Hafta içi günler için geçerli (Pazartesi-Cuma)
+                    DayOfWeek dayOfWeek = date.getDayOfWeek();
+                    boolean isWeekday = dayOfWeek.getValue() >= DayOfWeek.MONDAY.getValue() && 
+                                       dayOfWeek.getValue() <= DayOfWeek.FRIDAY.getValue();
+                    
+                    // Eğer hafta içi bir gün değilse, gösterme
+                    if (!isWeekday) {
+                        Log.d("CustomCalendarFragment", "Hafta içi bir gün değil, gösterilmiyor");
+                        result = false;
+                        break;
+                    }
+                    
+                    // Hafta içi görevleri her zaman göster
+                    result = true;
+                    break;
+                    
+                case WEEKENDS:
+                    // Hafta sonu günler için geçerli (Cumartesi-Pazar)
+                    DayOfWeek dayOfWeek2 = date.getDayOfWeek();
+                    boolean isWeekend = dayOfWeek2 == DayOfWeek.SATURDAY || dayOfWeek2 == DayOfWeek.SUNDAY;
+                    
+                    // Eğer hafta sonu bir gün değilse, gösterme
+                    if (!isWeekend) {
+                        result = false;
+                        break;
+                    }
+                    
+                    // Hafta sonu görevleri her zaman göster
+                    result = true;
+                    break;
+                    
+                case CUSTOM:
+                    // Özel tekrarlama ayarları için geçerli
+                    result = isCustomTaskForDate(routineSettings, date, taskDate);
+                    break;
+                    
+                default:
+                    result = taskDate.equals(date);
+                    break;
+            }
+            
+            Log.d("CustomCalendarFragment", "isTaskForSelectedDate sonucu: " + result);
+            return result;
+        } catch (Exception e) {
+            Log.e("CustomCalendarFragment", "isTaskForSelectedDate: Hata oluştu", e);
+            return false;
+        }
+    }
+    
+    /**
+     * Haftalık görevin belirli bir tarihte gösterilmesi gerekip gerekmediğini kontrol eder
+     */
+    private boolean isWeeklyTaskForDate(String weekDaysStr, LocalDate date, LocalDate taskStartDate) {
+        // Eğer haftanın günleri belirtilmemişse, görevin başlangıç gününü kullan
+        if (weekDaysStr == null || weekDaysStr.isEmpty()) {
+            return date.getDayOfWeek().getValue() == taskStartDate.getDayOfWeek().getValue();
+        }
+        
+        // Haftanın günlerini kontrol et
+        String[] days = weekDaysStr.split(",");
+        int currentDayOfWeek = date.getDayOfWeek().getValue();
+        
+        for (String day : days) {
+            try {
+                int weekDay = Integer.parseInt(day.trim());
+                if (weekDay == currentDayOfWeek) {
+                    return true;
+                }
+            } catch (NumberFormatException e) {
+                // Geçersiz gün formatı, atla
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Aylık görevin belirli bir tarihte gösterilmesi gerekip gerekmediğini kontrol eder
+     */
+    private boolean isMonthlyTaskForDate(String monthDaysStr, LocalDate date) {
+        // Eğer ayın günleri belirtilmemişse, gösterme
+        if (monthDaysStr == null || monthDaysStr.isEmpty()) {
+            return false;
+        }
+        
+        // Ayın günlerini kontrol et
+        String[] days = monthDaysStr.split(",");
+        int currentDayOfMonth = date.getDayOfMonth();
+        
+        for (String day : days) {
+            try {
+                int monthDay = Integer.parseInt(day.trim());
+                if (monthDay == currentDayOfMonth) {
+                    return true;
+                }
+            } catch (NumberFormatException e) {
+                // Geçersiz gün formatı, atla
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Özel görevin belirli bir tarihte gösterilmesi gerekip gerekmediğini kontrol eder
+     */
+    private boolean isCustomTaskForDate(RoutineSettings routineSettings, LocalDate date, LocalDate taskStartDate) {
+        // Hem haftalık hem de aylık ayarları kontrol et
+        if (routineSettings.getWeekDays() != null && !routineSettings.getWeekDays().isEmpty()) {
+            if (isWeeklyTaskForDate(routineSettings.getWeekDays(), date, taskStartDate)) {
+                return true;
+            }
+        }
+        
+        if (routineSettings.getMonthDays() != null && !routineSettings.getMonthDays().isEmpty()) {
+            if (isMonthlyTaskForDate(routineSettings.getMonthDays(), date)) {
+                return true;
+            }
+        }
+        
+        // Eğer her ikisi de yoksa, günlük olarak kontrol et
+        if ((routineSettings.getWeekDays() == null || routineSettings.getWeekDays().isEmpty()) && 
+            (routineSettings.getMonthDays() == null || routineSettings.getMonthDays().isEmpty())) {
+            return true; // Her gün göster
+        }
+        
+        return false;
     }
 
     private void showEmptyState() {
@@ -487,7 +1034,7 @@ public class CustomCalendarFragment extends Fragment implements TaskAdapter.Task
 
     // Görünen aylar için görevleri yükle (lazy loading)
     private void loadTasksForVisibleMonths(YearMonth visibleMonth) {
-        // Görünen ay ve komşu aylar için tarih aralığı oluştur
+        // Görünen ay ve komşu aylar için tarih aralığını belirle
         LocalDate startDate = visibleMonth.minusMonths(1).atDay(1);
         LocalDate endDate = visibleMonth.plusMonths(1).atEndOfMonth();
         
@@ -498,7 +1045,24 @@ public class CustomCalendarFragment extends Fragment implements TaskAdapter.Task
         // Sadece bu tarih aralığındaki görevleri yükle
         viewModel.getTasksBetweenDates(start, end).observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) {
-                updateCalendarWithTasks(tasks);
+                // Tüm görevleri al (rutin görevler dahil)
+                List<Task> allTasks = new ArrayList<>(tasks);
+                
+                // Rutin görevleri de ekle
+                List<Task> routineTasks = viewModel.getAllTasks().getValue();
+                if (routineTasks != null) {
+                    for (Task task : routineTasks) {
+                        if (task.getRepeatType() != null && task.getRepeatType() != RepeatType.NONE) {
+                            // Rutin görevleri ekle
+                            if (!allTasks.contains(task)) {
+                                allTasks.add(task);
+                            }
+                        }
+                    }
+                }
+                
+                // Takvimi güncelle
+                updateCalendarWithTasks(allTasks);
                 
                 // Eğer seçili tarih bu aralıktaysa, o tarihe ait görevleri filtrele
                 if (!selectedDate.isBefore(startDate) && !selectedDate.isAfter(endDate)) {

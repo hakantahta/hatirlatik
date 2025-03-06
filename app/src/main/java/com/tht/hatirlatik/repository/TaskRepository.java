@@ -6,7 +6,9 @@ import androidx.lifecycle.LiveData;
 
 import com.tht.hatirlatik.database.AppDatabase;
 import com.tht.hatirlatik.database.TaskDao;
+import com.tht.hatirlatik.database.RoutineSettingsDao;
 import com.tht.hatirlatik.model.Task;
+import com.tht.hatirlatik.model.RoutineSettings;
 
 import java.util.Date;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.concurrent.Executors;
 
 public class TaskRepository {
     private final TaskDao taskDao;
+    private final RoutineSettingsDao routineSettingsDao;
     private final ExecutorService executorService;
     private final Context context;
 
@@ -22,7 +25,51 @@ public class TaskRepository {
         this.context = application;
         AppDatabase database = AppDatabase.getInstance(application);
         taskDao = database.taskDao();
+        routineSettingsDao = database.routineSettingsDao();
         executorService = Executors.newSingleThreadExecutor();
+    }
+
+    public void insertTaskWithRoutine(Task task, RoutineSettings routineSettings, OnTaskOperationCallback callback) {
+        executorService.execute(() -> {
+            try {
+                long taskId = taskDao.insert(task);
+                task.setId(taskId);
+                
+                if (routineSettings != null) {
+                    routineSettings.setTaskId(taskId);
+                    routineSettingsDao.insert(routineSettings);
+                }
+                
+                callback.onSuccess(taskId);
+            } catch (Exception e) {
+                callback.onError(e);
+            }
+        });
+    }
+
+    public void updateTaskWithRoutine(Task task, RoutineSettings routineSettings, OnTaskOperationCallback callback) {
+        executorService.execute(() -> {
+            try {
+                taskDao.update(task);
+                
+                if (routineSettings != null) {
+                    RoutineSettings existingSettings = routineSettingsDao.getRoutineSettingsByTaskIdSync(task.getId());
+                    
+                    if (existingSettings != null) {
+                        routineSettingsDao.update(routineSettings);
+                    } else {
+                        routineSettings.setTaskId(task.getId());
+                        routineSettingsDao.insert(routineSettings);
+                    }
+                } else {
+                    routineSettingsDao.deleteRoutineSettingsByTaskId(task.getId());
+                }
+                
+                callback.onSuccess(task.getId());
+            } catch (Exception e) {
+                callback.onError(e);
+            }
+        });
     }
 
     public void insertTask(Task task, OnTaskOperationCallback callback) {
@@ -78,6 +125,16 @@ public class TaskRepository {
                 callback.onError(e);
             }
         });
+    }
+
+    public LiveData<RoutineSettings> getRoutineSettingsByTaskId(long taskId) {
+        return routineSettingsDao.getRoutineSettingsByTaskId(taskId);
+    }
+
+    public RoutineSettings getRoutineSettingsByTaskIdSync(long taskId) {
+        RoutineSettings settings = routineSettingsDao.getRoutineSettingsByTaskIdSync(taskId);
+        android.util.Log.d("TaskRepository", "getRoutineSettingsByTaskIdSync: taskId=" + taskId + ", settings=" + (settings != null ? "bulundu" : "bulunamadı"));
+        return settings;
     }
 
     public LiveData<List<Task>> getAllTasks() {

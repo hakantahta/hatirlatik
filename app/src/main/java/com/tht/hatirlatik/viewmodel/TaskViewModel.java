@@ -12,6 +12,16 @@ import com.tht.hatirlatik.repository.TaskRepository;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.tht.hatirlatik.model.RoutineSettings;
+import java.util.Calendar;
+import android.util.Log;
+import com.tht.hatirlatik.model.NotificationType;
+import com.tht.hatirlatik.model.RepeatType;
+import com.tht.hatirlatik.widget.TaskWidgetProvider;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import com.tht.hatirlatik.workers.RoutineTaskWorker;
 
 public class TaskViewModel extends AndroidViewModel {
     private final TaskRepository repository;
@@ -24,6 +34,7 @@ public class TaskViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> checkboxState = new MutableLiveData<>();
     private final MutableLiveData<Long> lastCheckedTaskId = new MutableLiveData<>();
     private final MutableLiveData<List<Task>> taskListLiveData = new MutableLiveData<>();
+    private final MutableLiveData<RoutineSettings> currentRoutineSettings = new MutableLiveData<>();
 
     public TaskViewModel(Application application) {
         super(application);
@@ -71,6 +82,191 @@ public class TaskViewModel extends AndroidViewModel {
             errorMessage.setValue("Görevler filtrelenirken bir hata oluştu: " + e.getMessage());
             filteredTasks.setValue(tasks); // Hata durumunda tüm görevleri göster
         }
+    }
+
+    // Görev ve rutin ayarlarını birlikte ekle
+    public void insertTaskWithRoutine(Task task, RoutineSettings routineSettings) {
+        isLoading.setValue(true);
+        repository.insertTaskWithRoutine(task, routineSettings, new TaskRepository.OnTaskOperationCallback() {
+            @Override
+            public void onSuccess(long taskId) {
+                isLoading.postValue(false);
+                task.setId(taskId);
+                
+                // Görevi ekledikten sonra hatırlatıcıyı planla
+                if (routineSettings != null && routineSettings.getRepeatType() != RepeatType.NONE) {
+                    // Rutin görev için özel planlama
+                    scheduleRoutineTask(task, routineSettings);
+                } else {
+                    // Normal görev için standart planlama
+                    notificationManager.scheduleTaskReminder(task);
+                }
+                
+                // Widget'ı güncelle
+                try {
+                    // Widget'ı doğrudan güncelle
+                    com.tht.hatirlatik.widget.TaskWidgetProvider.refreshWidget(getApplication());
+                    
+                    // Ayrıca uygulama sınıfından da güncelleme yap
+                    if (getApplication() instanceof com.tht.hatirlatik.HatirlatikApplication) {
+                        com.tht.hatirlatik.HatirlatikApplication app = 
+                            (com.tht.hatirlatik.HatirlatikApplication) getApplication();
+                        app.updateWidgets();
+                    }
+                    
+                    // Doğrudan tüm widget'ları güncelle
+                    com.tht.hatirlatik.widget.TaskWidgetProvider.updateAllWidgets(getApplication());
+                } catch (Exception e) {
+                    Log.e("TaskViewModel", "Widget güncellenirken hata: " + e.getMessage(), e);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                isLoading.postValue(false);
+                errorMessage.postValue("Görev eklenirken bir hata oluştu: " + e.getMessage());
+            }
+        });
+    }
+    
+    // Görev ve rutin ayarlarını birlikte güncelle
+    public void updateTaskWithRoutine(Task task, RoutineSettings routineSettings) {
+        isLoading.setValue(true);
+        repository.updateTaskWithRoutine(task, routineSettings, new TaskRepository.OnTaskOperationCallback() {
+            @Override
+            public void onSuccess(long taskId) {
+                isLoading.postValue(false);
+                
+                // Mevcut hatırlatıcıyı iptal et
+                notificationManager.cancelTaskReminder(task);
+                
+                // Yeni hatırlatıcıyı planla
+                if (routineSettings != null && routineSettings.getRepeatType() != RepeatType.NONE) {
+                    // Rutin görev için özel planlama
+                    scheduleRoutineTask(task, routineSettings);
+                } else {
+                    // Normal görev için standart planlama
+                    notificationManager.scheduleTaskReminder(task);
+                }
+                
+                // Widget'ı güncelle
+                updateWidgets();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                isLoading.postValue(false);
+                errorMessage.postValue("Görev güncellenirken bir hata oluştu: " + e.getMessage());
+            }
+        });
+    }
+    
+    // Rutin görev için hatırlatıcıları planla
+    private void scheduleRoutineTask(Task task, RoutineSettings routineSettings) {
+        try {
+            // Rutin görevler için özel planlama mantığı
+            // Bu metod, rutin ayarlarına göre birden fazla hatırlatıcı planlayabilir
+            
+            // Temel bilgileri al
+            RepeatType repeatType = routineSettings.getRepeatType();
+            
+            // Tekrarlama tipine göre işlem yap
+            switch (repeatType) {
+                case DAILY:
+                    // Her gün tekrarlanan görev
+                    notificationManager.scheduleTaskReminder(task);
+                    break;
+                    
+                case WEEKLY:
+                    // Her hafta tekrarlanan görev
+                    notificationManager.scheduleTaskReminder(task);
+                    break;
+                    
+                case MONTHLY:
+                    // Her ay tekrarlanan görev
+                    notificationManager.scheduleTaskReminder(task);
+                    break;
+                    
+                case WEEKDAYS:
+                    // Hafta içi tekrarlanan görev - özel işlem
+                    scheduleWeekdaysTask(task);
+                    break;
+                    
+                case WEEKENDS:
+                    // Hafta sonu tekrarlanan görev
+                    notificationManager.scheduleTaskReminder(task);
+                    break;
+                    
+                case CUSTOM:
+                    // Özel tekrarlama ayarları
+                    notificationManager.scheduleTaskReminder(task);
+                    break;
+                    
+                default:
+                    // Varsayılan olarak normal hatırlatıcı planla
+                    notificationManager.scheduleTaskReminder(task);
+                    break;
+            }
+        } catch (Exception e) {
+            Log.e("TaskViewModel", "Rutin görev planlanırken hata: " + e.getMessage(), e);
+            // Hata durumunda normal hatırlatıcı planla
+            notificationManager.scheduleTaskReminder(task);
+        }
+    }
+    
+    // Hafta içi görevler için özel planlama
+    private void scheduleWeekdaysTask(Task task) {
+        try {
+            // WorkManager için input data oluştur
+            Data inputData = new Data.Builder()
+                    .putLong("taskId", task.getId())
+                    .putString("taskTitle", task.getTitle())
+                    .putString("taskDescription", task.getDescription())
+                    .putString("notificationType", task.getNotificationType().name())
+                    .putString("repeatType", RepeatType.WEEKDAYS.name())
+                    .build();
+            
+            // WorkRequest oluştur
+            OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(RoutineTaskWorker.class)
+                    .setInputData(inputData)
+                    .addTag("routine_task_" + task.getId())
+                    .build();
+            
+            // Work'ü planla
+            WorkManager.getInstance(getApplication()).enqueue(workRequest);
+            
+            Log.d("TaskViewModel", "Hafta içi görev planlandı: " + task.getTitle());
+        } catch (Exception e) {
+            Log.e("TaskViewModel", "Hafta içi görev planlanırken hata: " + e.getMessage(), e);
+            // Hata durumunda normal hatırlatıcı planla
+            notificationManager.scheduleTaskReminder(task);
+        }
+    }
+    
+    // Rutin ayarlarını getir
+    public LiveData<RoutineSettings> getRoutineSettingsByTaskId(long taskId) {
+        return repository.getRoutineSettingsByTaskId(taskId);
+    }
+    
+    /**
+     * Rutin ayarlarını senkron olarak getir
+     * @param taskId Görev ID
+     * @return Rutin ayarları, yoksa null
+     */
+    public RoutineSettings getRoutineSettingsByTaskIdSync(long taskId) {
+        RoutineSettings settings = repository.getRoutineSettingsByTaskIdSync(taskId);
+        Log.d("TaskViewModel", "getRoutineSettingsByTaskIdSync: taskId=" + taskId + ", settings=" + (settings != null ? settings.getRepeatType() : "null"));
+        return settings;
+    }
+    
+    // Mevcut rutin ayarlarını ayarla
+    public void setCurrentRoutineSettings(RoutineSettings settings) {
+        currentRoutineSettings.setValue(settings);
+    }
+    
+    // Mevcut rutin ayarlarını getir
+    public LiveData<RoutineSettings> getCurrentRoutineSettings() {
+        return currentRoutineSettings;
     }
 
     // Görev ekleme

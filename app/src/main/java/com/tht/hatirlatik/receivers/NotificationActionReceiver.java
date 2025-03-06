@@ -17,11 +17,17 @@ import com.tht.hatirlatik.notification.AlarmHelper;
 import com.tht.hatirlatik.notification.NotificationHelper;
 import com.tht.hatirlatik.notification.TaskNotificationManager;
 import com.tht.hatirlatik.repository.TaskRepository;
+import com.tht.hatirlatik.workers.TaskWorker;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 public class NotificationActionReceiver extends BroadcastReceiver {
     public static final String ACTION_COMPLETE_TASK = "com.tht.hatirlatik.ACTION_COMPLETE_TASK";
@@ -43,19 +49,38 @@ public class NotificationActionReceiver extends BroadcastReceiver {
             return;
         }
         
+        // Rutin görevler için benzersiz ID kontrolü
+        String uniqueTaskId = intent.getStringExtra("uniqueTaskId");
+        boolean isRoutineTask = uniqueTaskId != null && !uniqueTaskId.isEmpty();
+        
         TaskRepository taskRepository = new TaskRepository((Application) context.getApplicationContext());
         NotificationHelper notificationHelper = new NotificationHelper(context);
         AlarmHelper alarmHelper = new AlarmHelper(context);
         
         switch (action) {
             case ACTION_COMPLETE_TASK:
-                handleCompleteTask(context, taskRepository, notificationHelper, alarmHelper, taskId);
+                if (isRoutineTask) {
+                    // Rutin görev için özel işleme
+                    handleCompleteRoutineTask(context, taskRepository, notificationHelper, alarmHelper, taskId, uniqueTaskId);
+                } else {
+                    // Normal görev için standart işleme
+                    handleCompleteTask(context, taskRepository, notificationHelper, alarmHelper, taskId);
+                }
                 break;
                 
             case ACTION_REMIND_LATER:
-                handleRemindLater(context, taskRepository, alarmHelper, taskId, 
-                        intent.getStringExtra("taskTitle"), 
-                        intent.getStringExtra("taskDescription"));
+                if (isRoutineTask) {
+                    // Rutin görev için özel işleme
+                    handleRemindLaterRoutineTask(context, taskRepository, alarmHelper, taskId, 
+                            intent.getStringExtra("taskTitle"), 
+                            intent.getStringExtra("taskDescription"),
+                            uniqueTaskId);
+                } else {
+                    // Normal görev için standart işleme
+                    handleRemindLater(context, taskRepository, alarmHelper, taskId, 
+                            intent.getStringExtra("taskTitle"), 
+                            intent.getStringExtra("taskDescription"));
+                }
                 break;
         }
     }
@@ -83,41 +108,86 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                         taskRepository.updateTask(task, new TaskRepository.OnTaskOperationCallback() {
                             @Override
                             public void onSuccess(long taskId) {
-                                // Bildirimi hemen kapat
+                                // Bildirimi iptal et
                                 notificationHelper.cancelNotification(taskId);
                                 
-                                // Widget'ı güncelle - iki farklı yöntemle
-                                updateWidgets(context);
-                                
-                                // UI thread'de Toast göster
+                                // Kullanıcıya bildirim göster
                                 handler.post(() -> {
-                                    Toast.makeText(context, "Görev tamamlandı: " + task.getTitle(), 
-                                            Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, "Görev tamamlandı olarak işaretlendi", Toast.LENGTH_SHORT).show();
                                 });
                             }
-                            
+
                             @Override
                             public void onError(Exception e) {
                                 handler.post(() -> {
-                                    Toast.makeText(context, "Görev güncellenirken hata: " + e.getMessage(), 
-                                            Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, "Görev güncellenirken hata oluştu", Toast.LENGTH_SHORT).show();
                                 });
                             }
                         });
-                        
-                        // Observer'ı kaldır
-                        taskLiveData.removeObserver(this);
                     }
+                    
+                    // Gözlemciyi kaldır
+                    taskLiveData.removeObserver(this);
                 }
             };
             
-            // Main thread'de observer'ı ekle
-            handler.post(() -> taskLiveData.observeForever(observer));
+            // Gözlemciyi ekle
+            handler.post(() -> {
+                taskLiveData.observeForever(observer);
+            });
+        });
+    }
+    
+    /**
+     * Rutin görevler için tamamlama işlemi
+     * Bu metod, sadece belirli bir günün görevini tamamlar, diğer günleri etkilemez
+     */
+    private void handleCompleteRoutineTask(Context context, TaskRepository taskRepository, 
+                                         NotificationHelper notificationHelper, AlarmHelper alarmHelper, 
+                                         long taskId, String uniqueTaskId) {
+        executor.execute(() -> {
+            // Görevi veritabanından al
+            LiveData<Task> taskLiveData = taskRepository.getTaskById(taskId);
+            
+            // LiveData'yı gözlemle
+            Observer<Task> observer = new Observer<Task>() {
+                @Override
+                public void onChanged(Task task) {
+                    if (task != null) {
+                        // Alarmı ve titreşimi hemen durdur
+                        AlarmReceiver.stopAlarmSound();
+                        AlarmReceiver.stopVibration();
+                        
+                        // Alarmı iptal et
+                        alarmHelper.cancelAlarm(task);
+                        
+                        // Sadece bu bildirim için tamamlandı olarak işaretle
+                        // Ana görevi güncelleme, sadece bu günün bildirimini kapat
+                        
+                        // Benzersiz ID ile bildirimi iptal et
+                        notificationHelper.cancelNotificationByUniqueId(uniqueTaskId);
+                        
+                        // Kullanıcıya bildirim göster
+                        handler.post(() -> {
+                            Toast.makeText(context, "Bugünkü görev tamamlandı olarak işaretlendi", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                    
+                    // Gözlemciyi kaldır
+                    taskLiveData.removeObserver(this);
+                }
+            };
+            
+            // Gözlemciyi ekle
+            handler.post(() -> {
+                taskLiveData.observeForever(observer);
+            });
         });
     }
     
     private void handleRemindLater(Context context, TaskRepository taskRepository, 
-                                  AlarmHelper alarmHelper, long taskId, String taskTitle, String taskDescription) {
+                                  AlarmHelper alarmHelper, long taskId, 
+                                  String taskTitle, String taskDescription) {
         executor.execute(() -> {
             // Görevi veritabanından al
             LiveData<Task> taskLiveData = taskRepository.getTaskById(taskId);
@@ -152,7 +222,6 @@ public class NotificationActionReceiver extends BroadcastReceiver {
                                 // Widget'ı güncelle - iki farklı yöntemle
                                 updateWidgets(context);
                                 
-                                // UI thread'de Toast göster
                                 handler.post(() -> {
                                     Toast.makeText(context, "Görev 10 dakika sonra tekrar hatırlatılacak", 
                                             Toast.LENGTH_SHORT).show();
@@ -214,6 +283,51 @@ public class NotificationActionReceiver extends BroadcastReceiver {
             
             // Main thread'de observer'ı ekle
             handler.post(() -> taskLiveData.observeForever(observer));
+        });
+    }
+    
+    /**
+     * Rutin görevler için sonra hatırlatma işlemi
+     */
+    private void handleRemindLaterRoutineTask(Context context, TaskRepository taskRepository, 
+                                            AlarmHelper alarmHelper, long taskId, 
+                                            String taskTitle, String taskDescription,
+                                            String uniqueTaskId) {
+        executor.execute(() -> {
+            // Alarmı ve titreşimi hemen durdur
+            AlarmReceiver.stopAlarmSound();
+            AlarmReceiver.stopVibration();
+            
+            // Bildirimi iptal et
+            NotificationHelper notificationHelper = new NotificationHelper(context);
+            notificationHelper.cancelNotificationByUniqueId(uniqueTaskId);
+            
+            // 30 dakika sonra tekrar hatırlat
+            int delayMinutes = 30;
+            
+            // WorkManager için input data oluştur
+            Data inputData = new Data.Builder()
+                    .putLong("taskId", taskId)
+                    .putString("taskTitle", taskTitle)
+                    .putString("taskDescription", taskDescription)
+                    .putString("notificationType", "NOTIFICATION")
+                    .putString("uniqueTaskId", uniqueTaskId) // Benzersiz ID'yi ekle
+                    .build();
+
+            // WorkRequest oluştur - benzersiz bir tag kullan
+            OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(TaskWorker.class)
+                    .setInputData(inputData)
+                    .setInitialDelay(delayMinutes, TimeUnit.MINUTES)
+                    .addTag("task_remind_later_" + uniqueTaskId) // Benzersiz tag kullan
+                    .build();
+
+            // Work'ü planla
+            WorkManager.getInstance(context).enqueue(workRequest);
+            
+            // Kullanıcıya bildirim göster
+            handler.post(() -> {
+                Toast.makeText(context, delayMinutes + " dakika sonra tekrar hatırlatılacak", Toast.LENGTH_SHORT).show();
+            });
         });
     }
     

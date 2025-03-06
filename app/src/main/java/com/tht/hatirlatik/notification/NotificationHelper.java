@@ -49,8 +49,36 @@ public class NotificationHelper {
     public void showTaskNotification(Task task) {
         showTaskNotification(task.getId(), task.getTitle(), task.getDescription());
     }
+    
+    /**
+     * Rutin görevler için benzersiz ID ile bildirim gösterme
+     * @param task Görev
+     * @param uniqueTaskId Benzersiz görev ID'si
+     */
+    public void showTaskNotification(Task task, String uniqueTaskId) {
+        // Benzersiz ID'den bildirim ID'si oluştur
+        int notificationId = uniqueTaskId.hashCode();
+        
+        // Bildirim göster
+        showTaskNotification(task.getId(), task.getTitle(), task.getDescription(), notificationId, uniqueTaskId);
+    }
 
     public void showTaskNotification(long taskId, String title, String description) {
+        // Standart bildirim ID'si kullan
+        int notificationId = (int) taskId;
+        showTaskNotification(taskId, title, description, notificationId, null);
+    }
+    
+    /**
+     * Bildirim gösterme (iç metod)
+     * @param taskId Görev ID
+     * @param title Başlık
+     * @param description Açıklama
+     * @param notificationId Bildirim ID
+     * @param uniqueTaskId Benzersiz görev ID (rutin görevler için)
+     */
+    private void showTaskNotification(long taskId, String title, String description, 
+                                     int notificationId, String uniqueTaskId) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         
@@ -65,9 +93,15 @@ public class NotificationHelper {
         Intent completeIntent = new Intent(context, NotificationActionReceiver.class);
         completeIntent.setAction(NotificationActionReceiver.ACTION_COMPLETE_TASK);
         completeIntent.putExtra("taskId", taskId);
+        
+        // Rutin görev ise benzersiz ID'yi ekle
+        if (uniqueTaskId != null) {
+            completeIntent.putExtra("uniqueTaskId", uniqueTaskId);
+        }
+        
         PendingIntent completePendingIntent = PendingIntent.getBroadcast(
                 context,
-                (int) taskId,
+                notificationId, // Benzersiz bildirim ID'si kullan
                 completeIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
@@ -78,9 +112,15 @@ public class NotificationHelper {
         remindLaterIntent.putExtra("taskId", taskId);
         remindLaterIntent.putExtra("taskTitle", title);
         remindLaterIntent.putExtra("taskDescription", description);
+        
+        // Rutin görev ise benzersiz ID'yi ekle
+        if (uniqueTaskId != null) {
+            remindLaterIntent.putExtra("uniqueTaskId", uniqueTaskId);
+        }
+        
         PendingIntent remindLaterPendingIntent = PendingIntent.getBroadcast(
                 context,
-                (int) (taskId + 1000), // Farklı bir request code kullanıyoruz
+                notificationId + 1000, // Farklı bir request code kullanıyoruz
                 remindLaterIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
@@ -97,8 +137,8 @@ public class NotificationHelper {
                 .addAction(R.drawable.ic_alarm, "Sonra Hatırlat", remindLaterPendingIntent);
 
         try {
-            // Her görev için benzersiz bir bildirim ID'si kullanıyoruz
-            notificationManager.notify((int) taskId, builder.build());
+            // Benzersiz bildirim ID'si kullan
+            notificationManager.notify(notificationId, builder.build());
         } catch (SecurityException e) {
             e.printStackTrace();
             // Bildirim izni yoksa burada işlenebilir
@@ -107,5 +147,16 @@ public class NotificationHelper {
 
     public void cancelNotification(long taskId) {
         notificationManager.cancel((int) taskId);
+    }
+    
+    /**
+     * Benzersiz ID ile bildirimi iptal et
+     * @param uniqueTaskId Benzersiz görev ID'si
+     */
+    public void cancelNotificationByUniqueId(String uniqueTaskId) {
+        if (uniqueTaskId != null) {
+            int notificationId = uniqueTaskId.hashCode();
+            notificationManager.cancel(notificationId);
+        }
     }
 } 

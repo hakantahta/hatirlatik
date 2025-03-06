@@ -83,8 +83,13 @@
     <string name="task_time_hint">Saat Seç</string>
     <string name="task_reminder_hint">Hatırlatma Süresi</string>
     <string name="reminder_minutes">Hatırlatma Süresi (Dakika)</string>
+    <string name="reminder_minutes_hint">Ne kadar önce hatırlatılsın?</string>
     <string name="notification_type">Bildirim Türü</string>
+    <string name="notification_type_label">Bildirim Türü</string>
+    <string name="notification_only">Sadece Bildirim</string>
+    <string name="notification_and_alarm">Bildirim ve Alarm</string>
     <string name="save">Kaydet</string>
+    <string name="save_button">Kaydet</string>
     <string name="cancel">İptal</string>
     <string name="delete">Sil</string>
     <string name="edit">Düzenle</string>
@@ -193,4 +198,48 @@
     <string name="internet_not_connected">İnternet bağlantısı yok</string>
 
     <string name="task_completion_status">Görev tamamlanma durumu</string>
+    
+    <!-- Rutin Görevler -->
+    <string name="routine_settings">Rutin Ayarları</string>
+    <string name="is_routine">Rutin Görev</string>
+    <string name="routine_type">Rutin Türü</string>
+    <string name="routine_daily">Günlük</string>
+    <string name="routine_weekly">Haftalık</string>
+    <string name="routine_monthly">Aylık</string>
+    <string name="routine_yearly">Yıllık</string>
+    <string name="routine_custom">Özel</string>
+    <string name="routine_weekdays">Hafta İçi (Pazartesi-Cuma)</string>
+    <string name="routine_weekends">Hafta Sonu (Cumartesi-Pazar)</string>
+    <string name="routine_no_repeat">Tekrarlama Yok</string>
+    <string name="routine_interval">Tekrar Aralığı</string>
+    <string name="routine_interval_days">Gün</string>
+    <string name="routine_interval_weeks">Hafta</string>
+    <string name="routine_interval_months">Ay</string>
+    <string name="routine_end_date">Bitiş Tarihi</string>
+    <string name="routine_end_date_hint">Bitiş Tarihi (İsteğe Bağlı)</string>
+    <string name="routine_no_end_date">Bitiş Tarihi Yok</string>
+    <string name="routine_days_of_week">Haftanın Günleri</string>
+    <string name="routine_day_monday">Pazartesi</string>
+    <string name="routine_day_tuesday">Salı</string>
+    <string name="routine_day_wednesday">Çarşamba</string>
+    <string name="routine_day_thursday">Perşembe</string>
+    <string name="routine_day_friday">Cuma</string>
+    <string name="routine_day_saturday">Cumartesi</string>
+    <string name="routine_day_sunday">Pazar</string>
+    <string name="routine_task_created">Rutin görev oluşturuldu</string>
+    <string name="routine_task_updated">Rutin görev güncellendi</string>
+    <string name="routine_month_days_hint">Ayın Günleri (1-31)</string>
+    <string name="routine_month_days_helper">Örnek: 1,15,30 (virgülle ayırın)</string>
+    <string name="routine_times_per_day_label">Günde kaç kez:</string>
+    <string name="routine_times_per_day">kez</string>
+    <string name="routine_interval_hours_label">Tekrarlamalar arası süre:</string>
+    <string name="routine_interval_hours">saat</string>
+    <string name="routine_time_range_label">Zaman Aralığı</string>
+    <string name="routine_start_time">Başlangıç Saati</string>
+    <string name="routine_end_time">Bitiş Saati</string>
+    <string name="routine_date_range_label">Tarih Aralığı</string>
+    <string name="routine_start_date">Başlangıç Tarihi</string>
+    <string name="error_select_at_least_one_day">En az bir gün seçmelisiniz</string>
+    <string name="error_invalid_month_day">Geçerli bir gün numarası girin (1-31)</string>
+    <string name="error_invalid_month_day_format">Geçersiz format. Örnek: 1,15,30</string>
 </resources>
