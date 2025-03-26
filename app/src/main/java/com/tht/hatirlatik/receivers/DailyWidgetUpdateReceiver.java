@@ -23,13 +23,24 @@ public class DailyWidgetUpdateReceiver extends BroadcastReceiver {
         Log.d(TAG, "onReceive: Günlük güncelleme alarmı tetiklendi. Action: " + action);
         
         try {
+            // Eğer boot completed ise, sadece widget'ı güncelle, alarm kurma
+            if (action != null && action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+                Log.d(TAG, "onReceive: Cihaz yeniden başlatıldı, sadece widget'ı güncelliyoruz");
+                updateWidgets(context);
+                return;
+            }
+            
             // Widget'ı güncelle
             updateWidgets(context);
             
-            // Bir sonraki gün için alarmı kur
-            scheduleNextDayUpdate(context);
+            // Eğer action BOOT_COMPLETED değilse, bir sonraki gün için alarmı kur
+            if (action == null || !action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+                scheduleNextDayUpdate(context);
+            }
             
-            Log.d(TAG, "onReceive: Widget güncellendi ve bir sonraki gün için alarm kuruldu");
+            Log.d(TAG, "onReceive: Widget güncellendi" + 
+                (action == null || !action.equals(Intent.ACTION_BOOT_COMPLETED) ? 
+                " ve bir sonraki gün için alarm kuruldu" : ""));
         } catch (Exception e) {
             Log.e(TAG, "onReceive: Widget güncellenirken hata oluştu", e);
         }

@@ -53,6 +53,12 @@ public class TaskWidgetProvider extends AppWidgetProvider {
                 return;
             }
             
+            // BOOT_COMPLETED olayını BootCompletedReceiver ele alacak
+            if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+                Log.d(TAG, "onReceive: BOOT_COMPLETED alındı, fakat bu işlem BootCompletedReceiver tarafından ele alınacak");
+                return;
+            }
+            
             // Tarih veya saat değiştiğinde widget'ı güncelle
             if (action.equals(Intent.ACTION_DATE_CHANGED) || 
                 action.equals(Intent.ACTION_TIME_CHANGED) || 
@@ -141,20 +147,6 @@ public class TaskWidgetProvider extends AppWidgetProvider {
                 } else {
                     Log.e(TAG, "onReceive: Geçersiz görev ID");
                 }
-            }
-            // Diğer sistem olayları
-            else if (action.equals(Intent.ACTION_BOOT_COMPLETED) || 
-                    action.equals(Intent.ACTION_MY_PACKAGE_REPLACED)) {
-                
-                Log.d(TAG, "onReceive: Sistem olayı alındı: " + action);
-                
-                // Widget'ı güncelle
-                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-                int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, TaskWidgetProvider.class));
-                
-                onUpdate(context, appWidgetManager, appWidgetIds);
-                
-                Log.d(TAG, "onReceive: Widget sistem olayı sonrası güncellendi");
             }
         } catch (Exception e) {
             Log.e(TAG, "onReceive: Hata oluştu: " + e.getMessage(), e);

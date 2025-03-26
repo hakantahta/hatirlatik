@@ -27,7 +27,28 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d(TAG, "onReceive: Alarm alındı");
+        Log.d(TAG, "onReceive: Alarm alındı - Action: " + intent.getAction());
+        
+        // Telefonun yeniden başladığını kontrol et
+        if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+            Log.d(TAG, "onReceive: Telefon yeniden başladı, yeni alarmlar planlanacak");
+            // İşlemin burada bir bildirim veya alarm göstermeden sonlandırılması gerekiyor
+            // Geçerli görevleri yeniden planlama işlemini başka bir servis veya receiver yapmalı
+            return;
+        }
+        
+        // Görev bilgilerini al
+        long taskId = intent.getLongExtra("taskId", -1);
+        String taskTitle = intent.getStringExtra("taskTitle");
+        String taskDescription = intent.getStringExtra("taskDescription");
+        
+        Log.d(TAG, "onReceive: Görev ID: " + taskId + ", Başlık: " + taskTitle);
+        
+        // Geçerli bir görev ID'si ve başlık olmadan devam etme
+        if (taskId == -1 || taskTitle == null || taskTitle.isEmpty()) {
+            Log.w(TAG, "onReceive: Geçersiz görev bilgileri, işlem iptal edildi");
+            return;
+        }
         
         // Ekranı uyandır
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
@@ -39,13 +60,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         );
         wakeLock.acquire(60000); // 1 dakika boyunca ekranı açık tut
 
-        // Görev bilgilerini al
-        long taskId = intent.getLongExtra("taskId", -1);
-        String taskTitle = intent.getStringExtra("taskTitle");
-        String taskDescription = intent.getStringExtra("taskDescription");
-        
-        Log.d(TAG, "onReceive: Görev ID: " + taskId + ", Başlık: " + taskTitle);
-        
         // Tercihleri kontrol et
         PreferencesManager preferencesManager = new PreferencesManager(context);
         
