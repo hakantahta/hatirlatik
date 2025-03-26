@@ -6,10 +6,14 @@ import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.tht.hatirlatik.R;
 import com.tht.hatirlatik.preferences.PreferencesManager;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class AdHelper implements InternetHelper.InternetConnectionListener {
     private static final String TAG = "AdHelper";
@@ -18,6 +22,13 @@ public class AdHelper implements InternetHelper.InternetConnectionListener {
     private Context context;
     private InternetHelper internetHelper;
     private PreferencesManager preferencesManager;
+    
+    // Test cihazları
+    private static final List<String> TEST_DEVICE_IDS = Arrays.asList(
+        "A90A5CC789FD0A53C5AC61FD6FA3C0D7", // Emulator veya test cihazının ID'si 
+        "1025925392102608", // Kullanıcının cihaz ID'si
+        AdRequest.DEVICE_ID_EMULATOR // Emülatör
+    );
 
     private AdHelper() {}
 
@@ -56,6 +67,12 @@ public class AdHelper implements InternetHelper.InternetConnectionListener {
             Log.i(TAG, "Reklamlar kullanıcı tarafından devre dışı bırakılmış");
             return;
         }
+        
+        // Test cihazı konfigürasyonu
+        RequestConfiguration configuration = new RequestConfiguration.Builder()
+            .setTestDeviceIds(TEST_DEVICE_IDS)
+            .build();
+        MobileAds.setRequestConfiguration(configuration);
 
         MobileAds.initialize(context, new OnInitializationCompleteListener() {
             @Override

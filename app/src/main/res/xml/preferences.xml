@@ -14,6 +14,19 @@
             app:iconSpaceReserved="false" />
 
     </PreferenceCategory>
+    
+    <PreferenceCategory
+        android:title="@string/ads_settings"
+        app:iconSpaceReserved="false">
+        
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="show_ads"
+            android:title="@string/show_ads"
+            android:summary="@string/show_ads_summary"
+            app:iconSpaceReserved="false" />
+            
+    </PreferenceCategory>
 
     <PreferenceCategory
         android:title="@string/about"

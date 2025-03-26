@@ -21,12 +21,17 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.AdListener;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.tht.hatirlatik.databinding.ActivityMainBinding;
 import com.tht.hatirlatik.utils.InternetHelper;
+import com.tht.hatirlatik.utils.AdHelper;
 import com.tht.hatirlatik.ui.fragment.TaskListFragment;
 import com.tht.hatirlatik.model.NotificationType;
 import com.tht.hatirlatik.model.Task;
@@ -57,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
     private androidx.appcompat.app.AlertDialog noInternetDialog;
     private ExtendedFloatingActionButton fabAddTask;
     private ExtendedFloatingActionButton fabCalendar;
+    private AdView adView; // Banner reklam view'ı
+    private AdHelper adHelper; // Reklam yardımcı sınıfı
 
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler();
@@ -71,6 +78,9 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             // İnternet yardımcısını başlat
             internetHelper = new InternetHelper(this);
             internetHelper.setConnectionListener(this);
+
+            // Reklam yardımcısını başlat
+            adHelper = AdHelper.getInstance();
 
             MaterialToolbar toolbar = binding.toolbar;
             setSupportActionBar(toolbar);
@@ -115,6 +125,9 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
                         Toast.makeText(this, "Takvim ekranı açılırken bir hata oluştu", Toast.LENGTH_SHORT).show();
                     }
                 });
+                
+                // Banner reklamı ayarla
+                setupBannerAd();
             } else {
                 Log.e(TAG, "Navigation host fragment bulunamadı");
                 Toast.makeText(this, "Uygulama başlatılırken bir hata oluştu", Toast.LENGTH_LONG).show();
@@ -139,6 +152,66 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
             Log.e(TAG, "onCreate: " + e.getMessage(), e);
             Toast.makeText(this, "Uygulama başlatılırken bir hata oluştu", Toast.LENGTH_LONG).show();
             finish();
+        }
+    }
+    
+    /**
+     * Banner reklamı yükler ve gösterir
+     */
+    private void setupBannerAd() {
+        try {
+            adView = binding.adView;
+            
+            // Reklam olaylarını dinle
+            adView.setAdListener(new AdListener() {
+                @Override
+                public void onAdLoaded() {
+                    // Reklam başarıyla yüklendiğinde
+                    Log.d(TAG, "Banner reklam yüklendi");
+                }
+
+                @Override
+                public void onAdFailedToLoad(LoadAdError loadAdError) {
+                    // Reklam yüklenemediğinde
+                    Log.e(TAG, "Banner reklam yüklenemedi: " + loadAdError.getMessage());
+                }
+
+                @Override
+                public void onAdOpened() {
+                    // Kullanıcı reklama tıkladığında ve reklamın üzerine yönlendirildiğinde
+                    Log.d(TAG, "Banner reklam açıldı");
+                }
+
+                @Override
+                public void onAdClosed() {
+                    // Kullanıcı reklamdan döndüğünde
+                    Log.d(TAG, "Banner reklam kapatıldı");
+                    // Yeni reklam yükle
+                    loadBannerAd();
+                }
+            });
+
+            // İlk reklamı yükle
+            loadBannerAd();
+            
+        } catch (Exception e) {
+            Log.e(TAG, "setupBannerAd: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Banner reklamı yükler
+     */
+    private void loadBannerAd() {
+        try {
+            if (adHelper.canShowAds()) {
+                AdRequest adRequest = adHelper.getAdRequest();
+                if (adRequest != null) {
+                    adView.loadAd(adRequest);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "loadBannerAd: " + e.getMessage(), e);
         }
     }
 
@@ -166,66 +239,40 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        if (adView != null) {
+            adView.destroy();
+        }
         if (internetHelper != null) {
             internetHelper.removeConnectionListener();
         }
         if (noInternetDialog != null && noInternetDialog.isShowing()) {
             noInternetDialog.dismiss();
         }
+        super.onDestroy();
     }
 
     @Override
-    public void onConnectionChanged(boolean isConnected) {
-        runOnUiThread(() -> {
-            if (isConnected) {
-                if (noInternetDialog != null && noInternetDialog.isShowing()) {
-                    noInternetDialog.dismiss();
-                }
-                Snackbar.make(binding.getRoot(), R.string.internet_connected, Snackbar.LENGTH_SHORT).show();
-            } else {
-                showNoInternetDialog();
-            }
-        });
-    }
-
-    private void showNoInternetDialog() {
-        if (noInternetDialog != null && noInternetDialog.isShowing()) {
-            return;
+    protected void onPause() {
+        if (adView != null) {
+            adView.pause();
         }
-
-        noInternetDialog = new MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.no_internet_title)
-            .setMessage(R.string.no_internet_message)
-            .setCancelable(false)
-            .setPositiveButton(R.string.no_internet_retry, (dialog, which) -> {
-                if (internetHelper.isInternetAvailable()) {
-                    dialog.dismiss();
-                    Snackbar.make(binding.getRoot(), R.string.internet_connected, Snackbar.LENGTH_SHORT).show();
-                } else {
-                    dialog.dismiss();
-                    Snackbar.make(binding.getRoot(), R.string.internet_not_connected, Snackbar.LENGTH_SHORT).show();
-                    showNoInternetDialog();
-                }
-            })
-            .setNeutralButton(R.string.no_internet_settings, (dialog, which) -> {
-                internetHelper.openInternetSettings();
-                dialog.dismiss();
-                showNoInternetDialog();
-            })
-            .setNegativeButton(R.string.no_internet_exit, (dialog, which) -> {
-                finish();
-            })
-            .create();
-
-        noInternetDialog.show();
+        super.onPause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (!internetHelper.isInternetAvailable()) {
-            showNoInternetDialog();
+        if (adView != null) {
+            adView.resume();
+        }
+        
+        // Örnek: Arka plandan döndüğünde reklamı yeniden yükle
+        try {
+            if (internetHelper.isInternetAvailable()) {
+                loadBannerAd();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "onResume: " + e.getMessage(), e);
         }
         
         // Widget'ı güncelle
@@ -513,5 +560,57 @@ public class MainActivity extends AppCompatActivity implements InternetHelper.In
         Intent intent = new Intent(this, TaskWidgetProvider.class);
         intent.setAction(TaskWidgetProvider.ACTION_DATA_UPDATED);
         sendBroadcast(intent);
+    }
+
+    @Override
+    public void onConnectionChanged(boolean isConnected) {
+        runOnUiThread(() -> {
+            if (isConnected) {
+                if (noInternetDialog != null && noInternetDialog.isShowing()) {
+                    noInternetDialog.dismiss();
+                }
+                Snackbar.make(binding.getRoot(), R.string.internet_connected, Snackbar.LENGTH_SHORT).show();
+                
+                // İnternet bağlantısı geldiğinde reklamı yeniden yükle
+                loadBannerAd();
+            } else {
+                showNoInternetDialog();
+            }
+        });
+    }
+
+    private void showNoInternetDialog() {
+        if (noInternetDialog != null && noInternetDialog.isShowing()) {
+            return;
+        }
+
+        noInternetDialog = new MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.no_internet_title)
+            .setMessage(R.string.no_internet_message)
+            .setCancelable(false)
+            .setPositiveButton(R.string.no_internet_retry, (dialog, which) -> {
+                if (internetHelper.isInternetAvailable()) {
+                    dialog.dismiss();
+                    Snackbar.make(binding.getRoot(), R.string.internet_connected, Snackbar.LENGTH_SHORT).show();
+                    
+                    // İnternet bağlantısı geldiğinde reklamı yeniden yükle
+                    loadBannerAd();
+                } else {
+                    dialog.dismiss();
+                    Snackbar.make(binding.getRoot(), R.string.internet_not_connected, Snackbar.LENGTH_SHORT).show();
+                    showNoInternetDialog();
+                }
+            })
+            .setNeutralButton(R.string.no_internet_settings, (dialog, which) -> {
+                internetHelper.openInternetSettings();
+                dialog.dismiss();
+                showNoInternetDialog();
+            })
+            .setNegativeButton(R.string.no_internet_exit, (dialog, which) -> {
+                finish();
+            })
+            .create();
+
+        noInternetDialog.show();
     }
 }

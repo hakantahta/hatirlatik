@@ -105,10 +105,8 @@
     <string name="no_tasks">Henüz görev eklenmemiş\nYeni görev eklemek için + butonuna tıklayın</string>
 
     <!-- Test reklam ID'leri -->
-    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
-    <string name="app_ad_id">ca-app-pub-3940256099942544~3347511713</string>
-    <string name="admob_app_id">ca-app-pub-xxx~yyy</string>
-    <string name="admob_banner_id">ca-app-pub-xxx/yyy</string>
+    <string name="banner_ad_unit_id">ca-app-pub-2321525102088027/8394424947</string>
+    <string name="app_ad_id">ca-app-pub-2321525102088027~3270486584</string>
 
     <!-- Ayarlar -->
     <string name="appearance">Görünüm</string>
@@ -126,6 +124,7 @@
     <string name="ads">Reklamlar</string>
     <string name="show_ads">Reklamları Göster</string>
     <string name="show_ads_summary">Uygulamayı desteklemek için reklamları göster</string>
+    <string name="ads_settings">Reklam Ayarları</string>
     
     <string name="about">Hakkında</string>
     <string name="version">Versiyon</string>

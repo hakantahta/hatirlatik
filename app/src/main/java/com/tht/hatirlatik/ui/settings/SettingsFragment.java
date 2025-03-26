@@ -13,6 +13,7 @@ import androidx.preference.SwitchPreferenceCompat;
 
 import com.tht.hatirlatik.R;
 import com.tht.hatirlatik.preferences.PreferencesManager;
+import com.tht.hatirlatik.utils.AdHelper;
 
 /**
  * Ayarlar ekranını yöneten fragment sınıfı.
@@ -28,6 +29,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         preferencesManager = new PreferencesManager(requireContext());
 
         setupDarkModePreference();
+        setupAdsPreference();
         setupAboutPreferences();
     }
 
@@ -50,6 +52,29 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             });
         }
     }
+    
+    private void setupAdsPreference() {
+        SwitchPreferenceCompat showAdsPreference = findPreference("show_ads");
+        if (showAdsPreference != null) {
+            // Mevcut ayar durumunu al
+            showAdsPreference.setChecked(preferencesManager.isAdsEnabled());
+            
+            showAdsPreference.setOnPreferenceChangeListener((preference, newValue) -> {
+                boolean showAds = (Boolean) newValue;
+                preferencesManager.setAdsEnabled(showAds);
+                
+                // Eğer reklamlar yeniden etkinleştirilirse AdMob'u yeniden başlat
+                if (showAds) {
+                    AdHelper.getInstance().initialize(requireContext());
+                }
+                
+                // Değişikliklerin etkili olması için aktiviteyi yeniden başlatmak gerekebilir
+                requireActivity().recreate();
+                
+                return true;
+            });
+        }
+    }
 
     private void setupAboutPreferences() {
         Preference versionPreference = findPreference("app_version");
@@ -68,8 +93,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     }
 
     private void openPrivacyPolicy() {
-        // TODO: Gizlilik politikası URL'sini ekleyin
-        String privacyPolicyUrl = "https://example.com/privacy-policy";
+        // Gizlilik politikası URL'si
+        String privacyPolicyUrl = "https://hatirlatik.com/privacy-policy";
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(privacyPolicyUrl));
         startActivity(intent);
     }
