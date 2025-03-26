@@ -16,57 +16,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="@string/notifications"
-        app:iconSpaceReserved="false">
-
-        <ListPreference
-            android:defaultValue="30"
-            android:entries="@array/reminder_times"
-            android:entryValues="@array/reminder_times_values"
-            android:key="default_reminder_minutes"
-            android:title="@string/default_reminder_time"
-            android:summary="%s"
-            app:iconSpaceReserved="false" />
-
-        <ListPreference
-            android:defaultValue="notification"
-            android:entries="@array/notification_types"
-            android:entryValues="@array/notification_type_values"
-            android:key="default_notification_type"
-            android:title="@string/default_notification_type"
-            android:summary="%s"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="notification_sound"
-            android:title="@string/notification_sound"
-            android:summary="@string/notification_sound_summary"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="notification_vibration"
-            android:title="@string/notification_vibration"
-            android:summary="@string/notification_vibration_summary"
-            app:iconSpaceReserved="false" />
-
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/ads"
-        app:iconSpaceReserved="false">
-
-        <SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="show_ads"
-            android:title="@string/show_ads"
-            android:summary="@string/show_ads_summary"
-            app:iconSpaceReserved="false" />
-
-    </PreferenceCategory>
-
-    <PreferenceCategory
         android:title="@string/about"
         app:iconSpaceReserved="false">
 

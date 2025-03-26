@@ -28,8 +28,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         preferencesManager = new PreferencesManager(requireContext());
 
         setupDarkModePreference();
-        setupNotificationPreferences();
-        setupAdsPreference();
         setupAboutPreferences();
     }
 
@@ -48,50 +46,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 AppCompatDelegate.setDefaultNightMode(
                     darkModeEnabled ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
                 );
-                return true;
-            });
-        }
-    }
-
-    private void setupNotificationPreferences() {
-        ListPreference defaultReminderPreference = findPreference("default_reminder_minutes");
-        if (defaultReminderPreference != null) {
-            defaultReminderPreference.setOnPreferenceChangeListener((preference, newValue) -> {
-                preferencesManager.setDefaultReminderMinutes(Integer.parseInt((String) newValue));
-                return true;
-            });
-        }
-
-        ListPreference notificationTypePreference = findPreference("default_notification_type");
-        if (notificationTypePreference != null) {
-            notificationTypePreference.setOnPreferenceChangeListener((preference, newValue) -> {
-                preferencesManager.setDefaultNotificationType((String) newValue);
-                return true;
-            });
-        }
-
-        SwitchPreferenceCompat soundPreference = findPreference("notification_sound");
-        if (soundPreference != null) {
-            soundPreference.setOnPreferenceChangeListener((preference, newValue) -> {
-                preferencesManager.setNotificationSoundEnabled((Boolean) newValue);
-                return true;
-            });
-        }
-
-        SwitchPreferenceCompat vibrationPreference = findPreference("notification_vibration");
-        if (vibrationPreference != null) {
-            vibrationPreference.setOnPreferenceChangeListener((preference, newValue) -> {
-                preferencesManager.setNotificationVibrationEnabled((Boolean) newValue);
-                return true;
-            });
-        }
-    }
-
-    private void setupAdsPreference() {
-        SwitchPreferenceCompat showAdsPreference = findPreference("show_ads");
-        if (showAdsPreference != null) {
-            showAdsPreference.setOnPreferenceChangeListener((preference, newValue) -> {
-                preferencesManager.setAdsEnabled((Boolean) newValue);
                 return true;
             });
         }
